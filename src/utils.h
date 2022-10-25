@@ -14,7 +14,10 @@
  *  limitations under the License.
  */
 
-#define EOF -1
+#ifndef _UTILS_H
+#define _UTILS_H
+
+#include "stdio.h"
 
 void printf_char(char wchar)
 {
@@ -46,3 +49,5 @@ void printf_char(char wchar)
   }
   return wchar;
 }*/
+
+#endif
