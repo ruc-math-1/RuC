@@ -1,5 +1,5 @@
 /*
- *	Copyright 2018 Andrey Terekhov, Mikhail Terekhov
+ *	Copyright 2022 Andrey Terekhov, Victor Y. Fadeev
  *
  *	Licensed under the Apache License, Version 2.0 (the "License");
  *	you may not use this file except in compliance with the License.
@@ -14,17 +14,7 @@
  *	limitations under the License.
  */
 
-#ifndef H_UTILS
-#define H_UTILS
 
-#define _CRT_SECURE_NO_WARNINGS
-
-#include <stdio.h>
-#include <stdlib.h>
-
-
-void printf_char(int wchar);
-void fprintf_char(FILE *f, int wchar);
-int getf_char();
-
-#endif
+void main() {
+	return 0;
+}
