@@ -303,6 +303,10 @@
 #define ICONC									9587
 #define UPBC									9588
 
+#define FOPENC 9700
+#define FCLOSEC 9701
+#define FPUTCC 9702
+#define FGETCC 9703
 
 // Лексемы
 
@@ -433,6 +437,11 @@
 #define DRAW_NUMBER								-86
 #define ICON									-87
 #define UPB										-88
+
+#define FOPEN -100
+#define FCLOSE -101
+#define FPUTC -102
+#define FGETC -103
 
 #define LVOIDASTER								-150
 #define ABSI									-151
