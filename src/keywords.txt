@@ -95,5 +95,5 @@ UPB upb КОЛ_ВО кол_во
 
 FOPEN fopen ФОТКРЫТЬ фоткрыть
 FCLOSE fclose ФЗАКРЫТЬ фзакрыть
-FGETC fgetc ФПОЛУЧИТЬЛ фполучитьл
 FPUTC fputc ФПОМЕСТИТЬЛ фпоместитьл
+FGETC fgetc ФПОЛУЧИТЬЛ фполучитьл
