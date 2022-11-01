@@ -895,6 +895,28 @@ void primaryexpr()
 		{
 			ansttype = stackoperands[++sopnd] = LFLOAT;
 		}
+		else if (func == FOPEN) // Функции работы с файлами
+		{
+			mustbestring();
+			mustbe(COMMA, no_comma_in_act_params_stanfunc);
+			mustbestring();
+			stackoperands[++sopnd] = ansttype = LINT;
+		}
+		else if (func == FCLOSE)
+		{
+			mustbeint();
+		}
+		else if (func == FPUTC)
+		{
+			mustbeint();
+			mustbe(COMMA, no_comma_in_act_params_stanfunc);
+			mustbeint();
+		}
+		else if (func == FGETC)
+		{
+			mustbeint();
+			stackoperands[++sopnd] = ansttype = LINT;
+		}
 		else
 		{
 			scaner();
