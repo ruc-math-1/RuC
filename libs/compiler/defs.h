@@ -303,10 +303,10 @@
 #define ICONC									9587
 #define UPBC									9588
 
-#define FOPENC 9700
-#define FCLOSEC 9701
-#define FPUTCC 9702
-#define FGETCC 9703
+#define FOPENC 9589
+#define FCLOSEC 9590
+#define FPUTCC 9591
+#define FGETCC 9592
 
 // Лексемы
 
@@ -438,10 +438,10 @@
 #define ICON									-87
 #define UPB										-88
 
-#define FOPEN -100
-#define FCLOSE -101
-#define FPUTC -102
-#define FGETC -103
+#define FOPEN -89
+#define FCLOSE -90
+#define FPUTC -91
+#define FGETC -92
 
 #define LVOIDASTER								-150
 #define ABSI									-151
