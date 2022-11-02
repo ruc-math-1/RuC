@@ -307,6 +307,7 @@
 #define FCLOSEC 9590
 #define FPUTCC 9591
 #define FGETCC 9592
+#define FPRINTFC 9593
 
 // Лексемы
 
@@ -442,6 +443,7 @@
 #define FCLOSE -90
 #define FPUTC -91
 #define FGETC -92
+#define FPRINTF -93
 
 #define LVOIDASTER								-150
 #define ABSI									-151

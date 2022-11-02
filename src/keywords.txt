@@ -97,3 +97,5 @@ FOPEN fopen ФОТКРЫТЬ фоткрыть
 FCLOSE fclose ФЗАКРЫТЬ фзакрыть
 FPUTC fputc ФПОМЕСТИТЬЛ фпоместитьл
 FGETC fgetc ФПОЛУЧИТЬЛ фполучитьл
+FPRINTF fprintf ФПЕЧАТЬФ фпечатьф
+
