@@ -917,6 +917,14 @@ void primaryexpr()
 			mustbeint();
 			stackoperands[++sopnd] = ansttype = LCHAR;
 		}
+		else if (func == PUTC)
+		{
+			mustbeint();
+		}
+		else if (func == GETC) 
+		{
+			stackoperands[++sopnd] = ansttype = LCHAR;
+		}
 		else
 		{
 			scaner();
