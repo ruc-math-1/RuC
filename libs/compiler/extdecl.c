@@ -915,7 +915,7 @@ void primaryexpr()
 		else if (func == FGETC)
 		{
 			mustbeint();
-			stackoperands[++sopnd] = ansttype = LINT;
+			stackoperands[++sopnd] = ansttype = LCHAR;
 		}
 		else
 		{
