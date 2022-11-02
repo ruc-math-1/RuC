@@ -309,6 +309,9 @@
 #define FGETCC 9592
 #define FPRINTFC 9593
 
+#define PUTCC 9594
+#define GETCC 9595
+
 // Лексемы
 
 #define COMMA									100
@@ -444,6 +447,9 @@
 #define FPUTC -91
 #define FGETC -92
 #define FPRINTF -93
+
+#define PUTC -94
+#define GETC -95
 
 #define LVOIDASTER								-150
 #define ABSI									-151

@@ -99,3 +99,5 @@ FPUTC fputc ФПОМЕСТИТЬЛ фпоместитьл
 FGETC fgetc ФПОЛУЧИТЬЛ фполучитьл
 FPRINTF fprintf ФПЕЧАТЬФ фпечатьф
 
+PUTC putc ПОМЕСТИТЬЛ поместитьл
+GETC getc ПОЛУЧИТЬЛ получитьл
