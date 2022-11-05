@@ -46,6 +46,8 @@ int checkif = 0;
 int flag_show_macro = 0;
 int arg = 0;
 
+int includeDepth = 0;
+int includedLines = 0;
 
 int mletter();
 int mdigit();
@@ -159,6 +161,10 @@ int mequal(int str[], int j)
 
 void mend_line()	// обработка символов
 {
+	if (includeDepth) {
+		includedLines++;
+	}
+
 	int j;
 
 	if (flag_show_macro == 0)
@@ -166,9 +172,9 @@ void mend_line()	// обработка символов
 		mlines[++mline] = m_charnum;
 		mlines[mline + 1] = m_charnum;
 
-		if (kw)
+		if (kw && includeDepth == 0)
 		{
-			printf("Line %i) ", mline - 1);
+			printf("Line %i) ", mline - 1 - includedLines);
 
 			for (j = mlines[mline - 1]; j < mlines[mline]; j++)
 			{
@@ -199,7 +205,10 @@ void monemore()
 	if (curchar == EOF)
 	{
 		mend_line();
-		printf("\n");
+		if (includeDepth == 0)
+		{
+			printf("\n");
+		}
 		return;
 	}
 }
@@ -252,7 +261,10 @@ void m_nextch(int i)
 			if (curchar == EOF)
 			{
 				mend_line();
-				printf("\n");
+				if (includeDepth == 0)
+				{
+					printf("\n");
+				}
 				m_error(comm_not_ended);
 			}
 
@@ -977,6 +989,41 @@ void m_if(int type_if)
 	}
 }
 
+void relis_include() 
+{
+	if (curchar != '\"') {
+		return m_error(ident_begins_with_quotes);
+	}
+	char filename[MAXSTRINGL] = {0};
+	int i = 0;
+	do {
+		m_nextch(1);
+		filename[i++] = curchar;
+	} while (curchar != '\"');
+
+	filename[i - 1] = 0;
+
+	FILE *old_input = input;
+	input = fopen(filename, "r");
+	if (input == NULL) {
+		printf(" файл %s не найден\n", filename);
+		input = old_input;
+		return;
+	}
+
+	mend_line();
+	if (includeDepth == 0)
+	{
+		printf("\n");
+	}
+
+	includeDepth++;
+	preprocess_file();
+	includeDepth --;
+
+	input = old_input;
+}
+
 void macroscan()
 {
 	int j;
@@ -1004,6 +1051,13 @@ void macroscan()
 			}
 			else if (cur == SH_ELSE || cur == SH_ELIF || cur == SH_ENDIF)
 			{
+				return;
+			}
+			else if (cur == SH_INCLUDE) 
+			{
+				relis_include();
+				m_nextch(1);
+				m_nextch(1);
 				return;
 			}
 			else
@@ -1075,10 +1129,13 @@ void macroscan()
 
 void preprocess_file()
 {
-	mfirstrp = rp;
-	mlines[mline = 1] = 1;
-	charnum = 1;
-	mcl = 1;
+	if (includeDepth == 0)
+	{
+		mfirstrp = rp;
+		mlines[mline = 1] = 1;
+		charnum = 1;
+		mcl = 1;
+	}
 
 	getnext();
 	m_nextch(18);
