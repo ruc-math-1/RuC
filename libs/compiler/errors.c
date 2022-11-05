@@ -726,6 +726,9 @@ void m_error(int ernum)
 		case scob_not_clous:
 			printf("Количество открывающих скобок не соотвеcтвует числу закрывающих\n");
 			break;
+		case ident_begins_with_quotes:
+			printf("Идентификатор должен начинаться с '\"'\n");
+			break;
 		default:;
 	}
 

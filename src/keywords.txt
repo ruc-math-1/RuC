@@ -101,3 +101,5 @@ FPRINTF fprintf ФПЕЧАТЬФ фпечатьф
 
 PUTC putc ПОМЕСТИТЬЛ поместитьл
 GETC getc ПОЛУЧИТЬЛ получитьл
+
+#INCLUDE #include #ВКЛЮЧИТЬ #включить
