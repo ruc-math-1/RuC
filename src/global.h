@@ -15,18 +15,18 @@
  */
 
 #ifndef _GLOBAL_H
-#define _GLOBAL_H
+#define _GLOBAL_H 1
 
 #include "defs.h"
 #include "stdio.h"
 
-struct
+struct numr
 {
   int first;
   int second;
-} numr;
+};
 
-FILE *input, *output;
+FILE input, output;
 
 double numdouble;
 int line = 0, mline = 0, charnum = 1, m_charnum = 1, cur, next, next1, num, hash, repr, keywordsnum, wasstructdef = 0;
