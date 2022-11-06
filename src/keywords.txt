@@ -26,6 +26,12 @@ PRINT print ПЕЧАТЬ печать
 PRINTF printf ПЕЧАТЬФ печатьф
 SCANF scanf ЧИТАТЬФ читатьф
 GETID getid ЧИТАТЬИД читатьид
+T_CREATE_DIRECT t_create_direct Н_СОЗДАТЬ_НЕПОСР н_создать_непоср
+T_EXIT_DIRECT t_exit_direct Н_КОНЕЦ_НЕПОСР н_конец_непоср
+SETMOTOR setmotor МОТОР мотор
+GETDIGSENSOR getdigsensor ЦИФРДАТЧИК цифрдатчик
+GETANSENSOR getansensor АНАЛОГДАТЧИК аналогдатчик
+SETVOLTAGE setvoltage УСТНАПРЯЖЕНИЕ устнапряжение
 ABS abs АБС абс
 SQRT sqrt КВКОР квкор
 EXP exp ЭКСП эксп
@@ -46,6 +52,19 @@ STRNCMP strncmp СРАВН_Н_СИМВ сравн_н_симв
 STRSTR strstr НАЧ_ПОДСТРОК нач_подстрок
 STRLEN strlen ДЛИНА длина
 
+T_MSG_SEND t_msg_send Н_ПОСЛАТЬ н_послать
+T_MSG_RECEIVE t_msg_receive Н_ПОЛУЧИТЬ н_получить
+T_JOIN t_join Н_ПРИСОЕД н_присоед
+T_SLEEP t_sleep Н_СПАТЬ н_спать
+T_SEM_CREATE t_sem_create Н_СОЗДАТЬ_СЕМ н_создать_сем
+T_SEM_WAIT t_sem_wait Н_ВНИЗ_СЕМ н_вниз_сем
+T_SEM_POST t_sem_post Н_ВВЕРХ_СЕМ н_вверх_сем
+T_CREATE t_create Н_СОЗДАТЬ н_создать
+T_INIT t_init Н_НАЧАТЬ н_начать
+T_DESTROY t_destroy Н_ЗАКОНЧИТЬ н_закончить
+T_EXIT t_exit Н_КОНЕЦ н_конец
+T_GETNUM t_getnum Н_НОМЕР_НИТИ н_номер_нити
+
 #DEFINE #define #ОПРЕД #опред
 #IFDEF #ifdef #ЕСЛИБЫЛ #еслибыл
 #IFNDEF #ifndef #ЕСЛИНЕБЫЛ #еслинебыл
@@ -53,3 +72,34 @@ STRLEN strlen ДЛИНА длина
 #ELIF #elif #ИНЕСЛИ #инесли
 #ENDIF #endif #КОНЕСЛИ #конесли
 #ELSE #else #ИНАЧЕ #иначе
+
+WIFI_CONNECT wifi_connect WIFI_ПОДКЛЮЧИТЬ wifi_подключить
+BLYNK_AUTHORIZATION blynk_authorization BLYNK_АВТОРИЗАЦИЯ blynk_авторизация
+BLYNK_SEND blynk_send BLYNK_ПОСЛАТЬ blynk_послать
+BLYNK_RECEIVE blynk_receive BLYNK_ПОЛУЧИТЬ blynk_получить
+BLYNK_NOTIFICATION blynk_notification BLYNK_УВЕДОМЛЕНИЕ blynk_уведомление
+BLYNK_PROPERTY blynk_property BLYNK_СВОЙСТВО blynk_свойство
+BLYNK_LCD blynk_lcd BLYNK_ДИСПЛЕЙ blynk_дисплей
+BLYNK_TERMINAL blynk_terminal BLYNK_ТЕРМИНАЛ blynk_терминал
+
+SETSIGNAL setsignal СИГНАЛ сигнал
+PIXEL pixel ПИКСЕЛЬ пиксель
+LINE line ЛИНИЯ линия
+RECTANGLE rectangle ПРЯМОУГОЛЬНИК прямоугольник
+ELLIPSE ellipse ЭЛЛИПС эллипс
+CLEAR clear ОЧИСТИТЬ очистить
+DRAW_STRING draw_string НАРИСОВАТЬ_СТРОКУ нарисовать_строку
+DRAW_NUMBER draw_number НАРИСОВАТЬ_ЧИСЛО нарисовать_число
+ICON icon ИКОНКА иконка
+UPB upb КОЛ_ВО кол_во
+
+FOPEN fopen ФОТКРЫТЬ фоткрыть
+FCLOSE fclose ФЗАКРЫТЬ фзакрыть
+FPUTC fputc ФПОМЕСТИТЬЛ фпоместитьл
+FGETC fgetc ФПОЛУЧИТЬЛ фполучитьл
+FPRINTF fprintf ФПЕЧАТЬФ фпечатьф
+
+PUTC putc ПОМЕСТИТЬЛ поместитьл
+GETC getc ПОЛУЧИТЬЛ получитьл
+
+#INCLUDE #include #ВКЛЮЧИТЬ #включить
