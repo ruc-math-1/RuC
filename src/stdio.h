@@ -3,5 +3,6 @@
 
 #define EOF -1
 #define FILE int
+#define NULL 0
 
-#endif
+#endif 
