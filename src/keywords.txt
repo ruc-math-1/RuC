@@ -84,7 +84,7 @@ BLYNK_TERMINAL blynk_terminal BLYNK_ТЕРМИНАЛ blynk_терминал
 
 SETSIGNAL setsignal СИГНАЛ сигнал
 PIXEL pixel ПИКСЕЛЬ пиксель
-LINE line ЛИНИЯ линия
+LINEE linee ЛИНИЯ линия
 RECTANGLE rectangle ПРЯМОУГОЛЬНИК прямоугольник
 ELLIPSE ellipse ЭЛЛИПС эллипс
 CLEAR clear ОЧИСТИТЬ очистить
