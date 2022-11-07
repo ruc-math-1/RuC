@@ -24,30 +24,14 @@ void printf_char(char wchar)
   printf("%c", wchar);
 }
 
-// void fprintf_char(FILE *f, int wchar)
-// {
-//   if (wchar < 128)
-//   {
-//     fprintf(f, "%c", wchar);
-//   }
-//   else
-//   {
-//     unsigned char first = (wchar >> 6) | /*0b11000000*/ 0xC0;
-//     unsigned char second = (wchar & /*0b111111*/ 0x3F) | /*0b10000000*/ 0x80;
-
-//     fprintf(f, "%c%c", first, second);
-//   }
-// }
-
-/*char getf_char()
+void fprintf_char(FILE *f, int wchar)
 {
-  char wchar;
+  fputc(wchar, f);
+}
 
-  if (scanf("%c", &wchar) == EOF)
-  {
-    return EOF;
-  }
-  return wchar;
-}*/
+char getf_char()
+{
+  return getc();
+}
 
 #endif
