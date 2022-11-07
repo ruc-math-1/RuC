@@ -20,7 +20,7 @@
 #include "scaner.h"
 
 void ext_decl();
-int szof(int type);
+int szof(int);
 
 int onlystrings;
 

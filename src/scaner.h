@@ -23,7 +23,7 @@ void nextch();
 
 int letter();
 int digit();
-int equal(int i, int j);
+int equal(int, int);
 
 int scan();
 int scaner();
