@@ -58,6 +58,8 @@ __declspec(dllexport) void compile(const char *code)
 void compile(const char *code)
 #endif
 {
+	source_file_path = code;
+
 	int i;
 
 	for (i = 0; i < 256; i++)

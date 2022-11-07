@@ -28,6 +28,7 @@ struct
 } numr;
 
 extern FILE *input, *output;
+extern char* source_file_path;
 
 extern double numdouble;
 extern int line, mline, charnum, m_charnum, cur, next, next1, num, hash, repr, keywordsnum, wasstructdef;

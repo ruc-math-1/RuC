@@ -989,6 +989,27 @@ void m_if(int type_if)
 	}
 }
 
+// TODO: Костыль для получения директории из пути файла.
+// НЕПЕРЕНОСИМЫЙ, ВНЕ СТИЛЯ КОДА, НО работает.
+char* path_get_dir(char *path)
+{
+	int len = strlen(path);
+  char *dir = calloc(len, sizeof(char)); 
+
+  int found = 0;
+  int i = len - 1;
+
+  while(path[i] != '/') 
+  	i--;
+  while(i >= 0) 
+  {
+  	dir[i] = path[i];
+  	i--;
+  }
+
+  return dir;
+}
+
 void relis_include() 
 {
 	if (curchar != '\"')
@@ -1006,10 +1027,20 @@ void relis_include()
 	filename[i - 1] = 0;
 
 	FILE *old_input = input;
-	input = fopen(filename, "r");
+
+	char* dir = path_get_dir(source_file_path);
+	char* realpath = calloc(strlen(dir) + strlen(filename) + 2, sizeof(char));
+	strcat(realpath, dir);
+	strcat(realpath, filename);
+
+	input = fopen(realpath, "r");
 	if (input == NULL)
 	{
-		printf(" файл %s не найден\n", filename);
+		printf(" файл %s не найден\n", realpath);
+
+		free(dir);
+		free(realpath);
+
 		input = old_input;
 		return;
 	}
@@ -1024,7 +1055,11 @@ void relis_include()
 	preprocess_file();
 	includeDepth--;
 
+	free(dir);
+	free(realpath);
+
 	input = old_input;
+
 }
 
 void macroscan()
