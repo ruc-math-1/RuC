@@ -51,28 +51,28 @@ void error(int ernum)
 	int j;
 
 	// tablesandtree();
-	printf("\n Oшибка :\n \n");
-	if (lines[line] == charnum)
-	{
-		line--;
-	}
+	// printf("\n Oшибка :\n \n");
+	// if (lines[line] == charnum)
+	// {
+	// 	line--;
+	// }
 
 	/*
 		printf("line - 1=%d, mline=%d, co[carnum-1=%d] = 1%c1, lines[line]=%d, lines[line+1]=%d \n",
 			line-1,m_conect_lines[line-1],charnum-1,source[charnum-1], lines[line],lines[line+1]);
 	*/
-	charnum--;
+	// charnum--;
 
-	for (j = 1; j < m_conect_lines[line]; j++)
-	{
-		printf("line %i) ", j);
+	// for (j = 1; j < m_conect_lines[line]; j++)
+	// {
+	// 	printf("line %i) ", j);
 
-		for (i = mlines[j]; i < mlines[j + 1]; i++)
-		{
-			printf_char(before_source[i]);
-		}
-	}
-	show_macro();
+	// 	for (i = mlines[j]; i < mlines[j + 1]; i++)
+	// 	{
+	// 		printf_char(before_source[i]);
+	// 	}
+	// }
+	// show_macro();
 
 	printf("\n");
 	printf("ошибка: ");
