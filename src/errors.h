@@ -18,9 +18,9 @@
 #define H_ERRORS 1
 
 
-void error(int ernum);
-void m_error(int ernum);
+void error(int);
+void m_error(int);
 
-void warning(int ernum);
+void warning(int);
 
 #endif
