@@ -999,7 +999,7 @@ char* path_get_dir(char *path)
   int found = 0;
   int i = len - 1;
 
-  while(path[i] != '/') 
+  while(i >= 0 && path[i] != '/') 
   	i--;
   while(i >= 0) 
   {
