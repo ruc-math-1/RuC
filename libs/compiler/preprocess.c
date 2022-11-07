@@ -991,12 +991,14 @@ void m_if(int type_if)
 
 void relis_include() 
 {
-	if (curchar != '\"') {
+	if (curchar != '\"')
+	{
 		return m_error(ident_begins_with_quotes);
 	}
-	char filename[MAXSTRINGL] = {0};
+	char filename[MAXSTRINGL] = { 0 };
 	int i = 0;
-	do {
+	do
+	{
 		m_nextch(1);
 		filename[i++] = curchar;
 	} while (curchar != '\"');
@@ -1005,7 +1007,8 @@ void relis_include()
 
 	FILE *old_input = input;
 	input = fopen(filename, "r");
-	if (input == NULL) {
+	if (input == NULL)
+	{
 		printf(" файл %s не найден\n", filename);
 		input = old_input;
 		return;
@@ -1019,7 +1022,7 @@ void relis_include()
 
 	includeDepth++;
 	preprocess_file();
-	includeDepth --;
+	includeDepth--;
 
 	input = old_input;
 }
