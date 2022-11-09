@@ -14,7 +14,9 @@
  *  limitations under the License.
  */
 
-#include "extdecl.h"
+#ifndef H_EXTDECL
+#define H_EXTDECL 1
+
 #include "errors.h"
 #include "global.h"
 #include "scaner.h"
@@ -24,10 +26,9 @@ int szof(int);
 
 int onlystrings;
 
-
-void array_init(int t);
-void block(int b);
-void expr(int level);
+void array_init(int);
+void block(int);
+void expr(int);
 void exprassn(int);
 void exprassnval();
 void exprval();
@@ -650,7 +651,7 @@ void primaryexpr()
       }
     }
   }
-  else if (cur <= STANDARD_FUNC_START)    // стандартная функция
+  else if (cur <= _STANDARD_FUNC_START)    // стандартная функция
   {
     int func = cur;
 
@@ -659,9 +660,9 @@ void primaryexpr()
       error(no_leftbr_in_stand_func);
     }
 
-    if (func <= STRCPY && func >= STRLEN) // функции работы со строками
+    if (func <= _STRCPY && func >= _STRLEN) // функции работы со строками
     {
-      if (func >= STRNCAT)
+      if (func >= _STRNCAT)
       {
         mustbepointstring();
       }
@@ -670,35 +671,35 @@ void primaryexpr()
         mustbestring();
       }
 
-      if (func != STRLEN)
+      if (func != _STRLEN)
       {
         mustbe(COMMA, no_comma_in_act_params_stanfunc);
         mustbestring();
 
-        if (func == STRNCPY || func == STRNCAT || func == STRNCMP)
+        if (func == _STRNCPY || func == _STRNCAT || func == _STRNCMP)
         {
           mustbe(COMMA, no_comma_in_act_params_stanfunc);
           mustbeint();
         }
       }
 
-      if (func < STRNCAT)
+      if (func < _STRNCAT)
       {
         stackoperands[++sopnd] = ansttype = LINT;
       }
     }
-    else if (func >= ICON && func <= WIFI_CONNECT)  // функции Фадеева
+    else if (func >= _ICON && func <= _WIFI_CONNECT)  // функции Фадеева
     {
       notrobot = 0;
-      if (func <= PIXEL && func >= ICON)
+      if (func <= _PIXEL && func >= _ICON)
       {
         mustberowofint();
-        if (func != CLEAR)
+        if (func != _CLEAR)
         {
           mustbe(COMMA, no_comma_in_act_params_stanfunc);
         }
 
-        if (func == LINE || func == RECTANGLE || func == ELLIPS)
+        if (func == _LINE || func == _RECTANGLE || func == _ELLIPS)
         {
           mustbeint();
           mustbe(COMMA, no_comma_in_act_params_stanfunc);
@@ -708,32 +709,32 @@ void primaryexpr()
           mustbe(COMMA, no_comma_in_act_params_stanfunc);
           mustbeint();
 
-          if (func != LINE)
+          if (func != _LINE)
           {
             mustbe(COMMA, no_comma_in_act_params_stanfunc);
             mustbeint();
           }
         }
-        else if (func == ICON || func == PIXEL)
+        else if (func == _ICON || func == _PIXEL)
         {
           mustbeint();
           mustbe(COMMA, no_comma_in_act_params_stanfunc);
           mustbeint();
 
-          if (func == ICON)
+          if (func == _ICON)
           {
             mustbe(COMMA, no_comma_in_act_params_stanfunc);
             mustbeint();
           }
         }
-        else if (func == DRAW_NUMBER || func == DRAW_STRING)
+        else if (func == _DRAW_NUMBER || func == _DRAW_STRING)
         {
           mustbeint();
           mustbe(COMMA, no_comma_in_act_params_stanfunc);
           mustbeint();
           mustbe(COMMA, no_comma_in_act_params_stanfunc);
 
-          if (func == DRAW_STRING)
+          if (func == _DRAW_STRING)
           {
             mustbestring();
           }
@@ -754,7 +755,7 @@ void primaryexpr()
           }
         }
       }
-      else if (func == SETSIGNAL)
+      else if (func == _SETSIGNAL)
       {
         mustbeint();
         mustbe(COMMA, no_comma_in_act_params_stanfunc);
@@ -762,11 +763,11 @@ void primaryexpr()
         mustbe(COMMA, no_comma_in_act_params_stanfunc);
         mustberowofint();
       }
-      else if (func == WIFI_CONNECT || func == BLYNK_AUTORIZATION || func == BLYNK_NOTIFICATION)
+      else if (func == _WIFI_CONNECT || func == _BLYNK_AUTORIZATION || func == _BLYNK_NOTIFICATION)
       {
         mustbestring();
 
-        if (func == WIFI_CONNECT)
+        if (func == _WIFI_CONNECT)
         {
           mustbe(COMMA, no_comma_in_act_params_stanfunc);
           mustbestring();
@@ -776,18 +777,18 @@ void primaryexpr()
       {
         mustbeint();
 
-        if (func != BLYNK_RECEIVE)
+        if (func != _BLYNK_RECEIVE)
         {
           mustbe(COMMA, no_comma_in_act_params_stanfunc);
-          if (func == BLYNK_TERMINAL)
+          if (func == _BLYNK_TERMINAL)
           {
             mustbestring();
           }
-          else if (func == BLYNK_SEND)
+          else if (func == _BLYNK_SEND)
           {
             mustbeint();
           }
-          else if (func == BLYNK_PROPERTY)
+          else if (func == _BLYNK_PROPERTY)
           {
             mustbestring();
             mustbe(COMMA, no_comma_in_act_params_stanfunc);
@@ -808,20 +809,20 @@ void primaryexpr()
         }
       }
     }
-    else if (func == UPB) // UPB
+    else if (func == _UPB) // UPB
     {
       mustbeint();
       mustbe(COMMA, no_comma_in_act_params_stanfunc);
       mustberow();
       stackoperands[++sopnd] = ansttype = LINT;
     }
-    else if (func <= TMSGSEND && func >= TGETNUM) // процедуры управления параллельными нитями
+    else if (func <= _TMSGSEND && func >= _TGETNUM) // процедуры управления параллельными нитями
     {
-      if (func == TINIT || func == TDESTROY || func == TEXIT);  // void()
-      else if (func == TMSGRECEIVE || func == TGETNUM)      // getnum int()   msgreceive msg_info()
+      if (func == _TINIT || func == _TDESTROY || func == _TEXIT);  // void()
+      else if (func == _TMSGRECEIVE || func == _TGETNUM)      // getnum int()   msgreceive msg_info()
       {
         anst = VAL;
-        ansttype = stackoperands[++sopnd] = func == TGETNUM ? LINT : 2;
+        ansttype = stackoperands[++sopnd] = func == _TGETNUM ? LINT : 2;
           // 2 - это ссылка на msg_info
           // не было параметра, выдали 1 результат
       }
@@ -830,7 +831,7 @@ void primaryexpr()
       {
         scaner(); // у этих процедур 1 параметр
 
-        if (func == TCREATE)
+        if (func == _TCREATE)
         {
           int dn;
 
@@ -867,7 +868,7 @@ void primaryexpr()
           exprassn(1);
           toval();
 
-          if (func == TMSGSEND)
+          if (func == _TMSGSEND)
           {
             if (ansttype != 2)  // 2 - это аргумент типа msg_info (struct{int numTh; int data;})
             {
@@ -881,7 +882,7 @@ void primaryexpr()
             {
               error(param_threads_not_int);
             }
-            if (func == TSEMCREATE)
+            if (func == _TSEMCREATE)
             {
               anst = VAL, ansttype = stackoperands[sopnd] = LINT; // съели 1 параметр, выдали int
             }
@@ -893,37 +894,37 @@ void primaryexpr()
         }
       }
     }
-    else if (func == RAND)
+    else if (func == _RAND)
     {
       ansttype = stackoperands[++sopnd] = LFLOAT;
     }
-    else if (func == FOPEN) // Функции работы с файлами
+    else if (func == _FOPEN) // Функции работы с файлами
     {
       mustbestring();
       mustbe(COMMA, no_comma_in_act_params_stanfunc);
       mustbestring();
       stackoperands[++sopnd] = ansttype = LINT;
     }
-    else if (func == FCLOSE)
+    else if (func == _FCLOSE)
     {
       mustbeint();
     }
-    else if (func == FPUTC)
+    else if (func == _FPUTC)
     {
       mustbeint();
       mustbe(COMMA, no_comma_in_act_params_stanfunc);
       mustbeint();
     }
-    else if (func == FGETC)
+    else if (func == _FGETC)
     {
       mustbeint();
       stackoperands[++sopnd] = ansttype = LCHAR;
     }
-    else if (func == PUTC)
+    else if (func == _PUTC)
     {
       mustbeint();
     }
-    else if (func == GETC) 
+    else if (func == _GETC) 
     {
       stackoperands[++sopnd] = ansttype = LCHAR;
     }
@@ -935,7 +936,7 @@ void primaryexpr()
 
       // GETDIGSENSOR int(int port, int pins[]), GETANSENSOR int (int port, int pin)
       // SETMOTOR и VOLTAGE void (int port, int volt)
-      if (func == GETDIGSENSOR || func == GETANSENSOR || func == SETMOTOR || func == VOLTAGE)
+      if (func == _GETDIGSENSOR || func == _GETANSENSOR || func == _SETMOTOR || func == _VOLTAGE)
       {
         notrobot = 0;
         if (!is_int(ansttype))
@@ -946,7 +947,7 @@ void primaryexpr()
         mustbe(COMMA, no_comma_in_setmotor);
         scaner();
 
-        if (func == GETDIGSENSOR)
+        if (func == _GETDIGSENSOR)
         {
           if (cur == BEGIN)
           {
@@ -966,7 +967,7 @@ void primaryexpr()
           {
             error(param_setmotor_not_int);
           }
-          if (func == SETMOTOR || func == VOLTAGE)
+          if (func == _SETMOTOR || func == _VOLTAGE)
           {
             sopnd -= 2;
           }
@@ -976,7 +977,7 @@ void primaryexpr()
           }
         }
 
-        if (func == SETMOTOR || func == VOLTAGE)
+        if (func == _SETMOTOR || func == _VOLTAGE)
         {
           sopnd -= 2;
         }
@@ -985,9 +986,9 @@ void primaryexpr()
           anst = VAL, --sopnd;
         }
       }
-      else if (func == ABS && is_int(ansttype))
+      else if (func == _ABS && is_int(ansttype))
       {
-        func = ABSI;
+        func = _ABSI;
       }
       else
       {
@@ -1002,7 +1003,7 @@ void primaryexpr()
           error(bad_param_in_stand_func);
         }
 
-        if (func == ROUND)
+        if (func == _ROUND)
         {
           ansttype = stackoperands[sopnd] = LINT;
         }
@@ -2094,7 +2095,7 @@ void statement()
     flagsemicol = 0;
     block(1);
   }
-  else if (cur == TCREATEDIRECT)
+  else if (cur == _TCREATEDIRECT)
   {
     totree(CREATEDIRECTC);
     flagsemicol = 0;
@@ -2148,7 +2149,7 @@ void statement()
 
     switch (cur)
     {
-      case PRINT:
+      case _PRINT:
       {
         exprassninbrkts(print_without_br);
         tc--;
@@ -2163,7 +2164,7 @@ void statement()
         sopnd--;
       }
         break;
-      case PRINTID:
+      case _PRINTID:
       {
         mustbe(LEFTBR, no_leftbr_in_printid);
         do
@@ -2183,7 +2184,7 @@ void statement()
       }
         break;
 
-      case PRINTF:
+      case _PRINTF:
       {
         int formatstr[MAXSTRINGL];
         int formattypes[MAXPRINTFPARAMS];
@@ -2258,7 +2259,7 @@ void statement()
       }
         break;
 
-      case GETID:
+      case _GETID:
       {
         mustbe(LEFTBR, no_leftbr_in_printid);
         do
@@ -2416,6 +2417,7 @@ void statement()
         break;
       case LGOTO:
       {
+        int fix = 1;
         int i;
         int flag = 1;
 
@@ -2441,11 +2443,14 @@ void statement()
           if (gotost[id + 1] < 0) // метка уже была
           {
             totree(id);
-            break;
+            fix = 0;
+          } else {
+            totree(gotost[pgotost++] = id);
           }
-          totree(gotost[pgotost++] = id);
         }
-        gotost[pgotost++] = line;
+
+        if (fix == 1)
+          gotost[pgotost++] = line;
       }
         break;
       case LIF:
@@ -2820,7 +2825,7 @@ void block(int b)
 
   do
   {
-    if (b == 2 ? next == TEXIT : next == END)
+    if (b == 2 ? next == _TEXIT : next == END)
     {
       scaner();
       notended = 0;
@@ -3269,3 +3274,5 @@ void ext_decl()
 
   totree(TEnd);
 }
+
+#endif
