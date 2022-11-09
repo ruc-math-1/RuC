@@ -14,8 +14,6 @@
  *  limitations under the License.
  */
 
-#ifndef H_EXTDECL
-#define H_EXTDECL 1
 
 #include "errors.h"
 #include "global.h"
@@ -3275,4 +3273,3 @@ void ext_decl()
   totree(TEnd);
 }
 
-#endif
