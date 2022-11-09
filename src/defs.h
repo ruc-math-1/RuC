@@ -325,6 +325,15 @@
 #define _SCANF -26
 #define _GETID -27
 
+#define _TCREATEDIRECT -28
+#define _TEXITDIRECT -29
+
+#define _STANDARD_FUNC_START -30
+#define _SETMOTOR -30
+#define _GETDIGSENSOR -31
+#define _GETANSENSOR -32
+#define _VOLTAGE -33
+
 #define _ABS -34
 #define _SQRT -35
 #define _EXP -36
@@ -345,6 +354,19 @@
 #define _STRSTR -50
 #define _STRLEN -51
 
+#define _TMSGSEND -52
+#define _TMSGRECEIVE -53
+#define _TJOIN -54
+#define _TSLEEP -55
+#define _TSEMCREATE -56
+#define _TSEMWAIT -57
+#define _TSEMPOST -58
+#define _TCREATE -59
+#define _TINIT -60
+#define _TDESTROY -61
+#define _TEXIT -62
+#define _TGETNUM -63
+
 #define SH_DEFINE -64 // #define
 #define SH_IFDEF -65  // #ifdef
 #define SH_IFNDEF -66 // #ifndef
@@ -352,6 +374,26 @@
 #define SH_ELIF -68   // #elif
 #define SH_ENDIF -69  // #endif
 #define SH_ELSE -70   // #else
+
+#define _WIFI_CONNECT              -71
+#define _BLYNK_AUTORIZATION            -72
+#define _BLYNK_SEND                -73
+#define _BLYNK_RECEIVE             -74
+#define _BLYNK_NOTIFICATION            -75
+#define _BLYNK_PROPERTY              -76
+#define _BLYNK_LCD               -77
+#define _BLYNK_TERMINAL              -78
+
+#define _SETSIGNAL -79
+#define _PIXEL -80
+#define _LINE -81
+#define _RECTANGLE -82
+#define _ELLIPS -83
+#define _CLEAR -84
+#define _DRAW_STRING -85
+#define _DRAW_NUMBER -86
+#define _ICON -87
+#define _UPB -88
 
 #define _FOPEN -89
 #define _FCLOSE -90
@@ -365,7 +407,7 @@
 #define SH_INCLUDE -96
 
 #define LVOIDASTER -150
-#define ABSI -151
+#define _ABSI -151
 
 // Узлы дерева
 
