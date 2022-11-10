@@ -391,14 +391,14 @@
 #define SH_ENDIF -69
 #define SH_ELSE -70
 
-#define _WIFI_CONNECT -71
-#define _BLYNK_AUTORIZATION -72
-#define _BLYNK_SEND -73
-#define _BLYNK_RECEIVE -74
-#define _BLYNK_NOTIFICATION -75
-#define _BLYNK_PROPERTY -76
-#define _BLYNK_LCD -77
-#define _BLYNK_TERMINAL -78
+#define _WIFI_CONNECT              -71
+#define _BLYNK_AUTORIZATION            -72
+#define _BLYNK_SEND                -73
+#define _BLYNK_RECEIVE             -74
+#define _BLYNK_NOTIFICATION            -75
+#define _BLYNK_PROPERTY              -76
+#define _BLYNK_LCD               -77
+#define _BLYNK_TERMINAL              -78
 
 #define _SETSIGNAL -79
 #define _PIXEL -80
@@ -420,7 +420,7 @@
 #define _PUTC -94
 #define _GETC -95
 
-#define SH_INCLUDE -96
+#define SH_INCLUDE -96 
 
 #define LVOIDASTER -150
 #define _ABSI -151
