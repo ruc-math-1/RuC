@@ -3261,6 +3261,7 @@ void ext_decl()
 	{
 		if (predef[i])
 		{
+			repr = predef[i];
 			error(predef_but_notdef);
 		}
 	}
