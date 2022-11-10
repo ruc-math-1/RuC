@@ -353,6 +353,17 @@
 #define SH_ENDIF -69  // #endif
 #define SH_ELSE -70   // #else
 
+#define _FOPEN -89
+#define _FCLOSE -90
+#define _FPUTC -91
+#define _FGETC -92
+#define _FPRINTF -93
+
+#define _PUTC -94
+#define _GETC -95
+
+#define SH_INCLUDE -96
+
 #define LVOIDASTER -150
 #define ABSI -151
 
@@ -596,6 +607,8 @@
 #define not_rowofint_in_stanfunc 383
 #define not_float_in_stanfunc 384
 #define not_array_in_stanfunc 385
+
+#define ident_begins_with_quotes 386
 
 // коды предупреждений
 
