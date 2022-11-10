@@ -30,7 +30,7 @@
 
 #define MAXMEMSIZE 5000000
 #define NUMOFTHREADS 5
-#define MAXMEMTHREAD MAXMEMSIZE / NUMOFTHREADS
+#define MAXMEMTHREAD (MAXMEMSIZE / NUMOFTHREADS)
 #define MAXPRINTFPARAMS 20
 
 // modetab
@@ -55,7 +55,8 @@
 #define MULTASS 9010
 #define DIVASS 9011
 
-#define REMASSAT 9012 // эти 22 операции с присваиванием оставляют значение на стеке
+// эти 22 операции с присваиванием оставляют значение на стеке
+#define REMASSAT 9012
 #define SHLASSAT 9013
 #define SHRASSAT 9014
 #define ANDASSAT 9015
@@ -81,7 +82,8 @@
 #define MULTASSV 9210
 #define DIVASSV 9211
 
-#define REMASSATV 9212 // а эти 22 операции с присваиванием не оставляют значение на стеке
+// а эти 22 операции с присваиванием не оставляют значение на стеке
+#define REMASSATV 9212
 #define SHLASSATV 9213
 #define SHRASSATV 9214
 #define ANDASSATV 9215
@@ -111,7 +113,8 @@
 #define LGE 9036
 #define LPLUS 9037
 #define LMINUS 9038
-#define LMULT 9039 // у этих 9 команд есть такие же с плавающей зпт
+// у этих 9 команд есть такие же с плавающей зпт
+#define LMULT 9039
 #define LDIV 9040
 
 #define POSTINC 9041
@@ -198,11 +201,15 @@
 #define LID 9456
 #define LOAD 9457
 #define LOADD 9458
-#define LAT 9459  // это L@, т.е. адрес ячейки на вершине стека заменить ее значением
-#define LATD 9460 // на вершине стека адрес вещественного значения, которое надо положить на стек
+// это L@, т.е. адрес ячейки на вершине стека заменить ее значением
+#define LAT 9459
+// на вершине стека адрес вещественного значения, которое надо положить на стек
+#define LATD 9460
 #define STOP 9461
-#define SELECT 9462  // операнд - смещение, которое эта команда добавит к верхушке стека
-#define FUNCBEG 9463 // обозначает начало кода функции
+// операнд - смещение, которое эта команда добавит к верхушке стека
+#define SELECT 9462
+// обозначает начало кода функции
+#define FUNCBEG 9463
 #define LA 9464
 #define CALL1 9465
 #define CALL2 9466
@@ -223,15 +230,24 @@
 #define BEGINIT 9481
 //#define STRUCTINIT              9482
 
-#define COPY00 9300     // d1, d2, l
-#define COPY01 9301     // d1, l
-#define COPY10 9302     // d2, l
-#define COPY11 9303     // l
-#define COPY0ST 9304    // d1, l    to stack
-#define COPY1ST 9305    // l      to stack
-#define COPY0STASS 9306 // d1, l    from stack
-#define COPY1STASS 9307 // l      from stack
-#define COPYST 9308     // d1, d2, l  структура - значение функции
+// d1, d2, l
+#define COPY00 9300
+// d1, l
+#define COPY01 9301
+// d2, l
+#define COPY10 9302
+// l
+#define COPY11 9303
+// d1, l    to stack
+#define COPY0ST 9304
+// l      to stack
+#define COPY1ST 9305
+// d1, l    from stack
+#define COPY0STASS 9306 
+// l      from stack
+#define COPY1STASS 9307 
+// d1, d2, l  структура - значение функции
+#define COPYST 9308
 
 // Коды операций стандартных функций
 
@@ -367,22 +383,22 @@
 #define _TEXIT -62
 #define _TGETNUM -63
 
-#define SH_DEFINE -64 // #define
-#define SH_IFDEF -65  // #ifdef
-#define SH_IFNDEF -66 // #ifndef
-#define SH_IF -67     // #if
-#define SH_ELIF -68   // #elif
-#define SH_ENDIF -69  // #endif
-#define SH_ELSE -70   // #else
+#define SH_DEFINE -64
+#define SH_IFDEF -65
+#define SH_IFNDEF -66
+#define SH_IF -67
+#define SH_ELIF -68
+#define SH_ENDIF -69
+#define SH_ELSE -70
 
-#define _WIFI_CONNECT              -71
-#define _BLYNK_AUTORIZATION            -72
-#define _BLYNK_SEND                -73
-#define _BLYNK_RECEIVE             -74
-#define _BLYNK_NOTIFICATION            -75
-#define _BLYNK_PROPERTY              -76
-#define _BLYNK_LCD               -77
-#define _BLYNK_TERMINAL              -78
+#define _WIFI_CONNECT -71
+#define _BLYNK_AUTORIZATION -72
+#define _BLYNK_SEND -73
+#define _BLYNK_RECEIVE -74
+#define _BLYNK_NOTIFICATION -75
+#define _BLYNK_PROPERTY -76
+#define _BLYNK_LCD -77
+#define _BLYNK_TERMINAL -78
 
 #define _SETSIGNAL -79
 #define _PIXEL -80
@@ -658,43 +674,80 @@
 
 // коды команд MIPS
 
-#define bltz 1   // bltz rs, label   if rs < 0         bgez rs, label  if rs >= 0
-#define jump 2   // j label
-#define jal 3    // jal label
-#define beq 4    // beq rs, rt, label  if rs == rt
-#define bne 5    // bne rs, rt, label  if rs != rt
-#define blez 6   // blez rs, label   if rs <= 0
-#define bgtz 7   // bgtz rs, label   if rs > 0
-#define addi 8   // addi rt, rs, imm   rt = rs + SignImm
-#define addiu 9  // addiu rt, rs, imm  rt = rs + SignImm     no overflow
-#define slti 10  // slti rt, rs, imm   rt = rs < SignImm ? 1 : 0
-#define sltiu 11 // sltiu rt, rs, imm  rt = rs < SignImm ? 1 : 0 unsigned
-#define andi 12  // andi rt, rs, imm   rt = rs & ZeroImm
-#define ori 13   // ori rt, rs, imm    rt = rs | ZeroImm
-#define xori 14  // xori rt, rs, imm   rt = rs ^ ZeroImm
-#define lui 15   // lui rt, imm      rt = {imm, 16'b0}
-#define li 115   // li rt, imm(32)   это псевдокоманда (lui + ori)
-#define mul 28   // mul rd, rs, rt   rd = rs * rt
-#define lw 35    // lw rt, imm(rs)   rt = [Address]
-#define sw 43    // sw rt, imm(rs)   [Address] = rt
+// bltz rs, label   if rs < 0         bgez rs, label  if rs >= 0
+#define bltz 1
+// j label
+#define jump 2
+// jal label
+#define jal 3
+// beq rs, rt, label  if rs == rt
+#define beq 4
+// bne rs, rt, label  if rs != rt
+#define bne 5
+// blez rs, label   if rs <= 0
+#define blez 6
+// bgtz rs, label   if rs > 0
+#define bgtz 7
+// addi rt, rs, imm   rt = rs + SignImm
+#define addi 8
+// addiu rt, rs, imm  rt = rs + SignImm     no overflow
+#define addiu 9
+// slti rt, rs, imm   rt = rs < SignImm ? 1 : 0
+#define slti 10
+// sltiu rt, rs, imm  rt = rs < SignImm ? 1 : 0 unsigned
+#define sltiu 11
+// andi rt, rs, imm   rt = rs & ZeroImm
+#define andi 12
+// ori rt, rs, imm    rt = rs | ZeroImm
+#define ori 13
+// xori rt, rs, imm   rt = rs ^ ZeroImm
+#define xori 14
+// lui rt, imm      rt = {imm, 16'b0}
+#define lui 15
+// li rt, imm(32)   это псевдокоманда (lui + ori)
+#define li 115
+// mul rd, rs, rt   rd = rs * rt
+#define mul 28
+// lw rt, imm(rs)   rt = [Address]
+#define lw 35
+// sw rt, imm(rs)   [Address] = rt
+#define sw 43
 
-#define sll 60   // sll rd, rt, shamt  rd = rt << shsmt
-#define srl 62   // srl rd, rt, shamt  rd = rt >> shsmt
-#define sra 63   // sra rd, rt, shamt  rd = rt >> shsmt      arithmetic
-#define sllv 64  // sllv rd, rt, rs    rd = rt << [rs]4:0
-#define srlv 66  // srlv rd, rt, rs    rd = rt >> [rs]4:0
-#define srav 67  // srav rd, rt, rs    rd = rt >> [rs]4:0      arithmetic
-#define jr 68    // jr rs        PC = rs
-#define jalr 69  // jalr rs
-#define add 92   // add rd, rs, rt   rd = rs + rt
-#define addu 93  // addu rd, rs, rt    rd = rs + rt        unsigned
-#define sub 94   // sub rd, rs, rt   rd = rs - rt
-#define subu 95  // subu rd, rs, rt    rd = rs - rt        unsigned
-#define and 96   // and rd, rs, rt   rd = ts & rt
-#define or 97    // or rd, rs, rt    rd = ts | rt
-#define xor 98   // xor rd, rs, rt   rd = ts ^ rt
-#define nor 99   // nor rd, rs, rt   rd = ~(rs | rt)
-#define slt 102  // slt rd, rs, rt   rd = rs < rt ? 1 : 0
-#define sltu 103 // sltu rd, rs, rt    rd = rs < rt ? 1 : 0    unsigned
+// sll rd, rt, shamt  rd = rt << shsmt
+#define sll 60
+// srl rd, rt, shamt  rd = rt >> shsmt
+#define srl 62
+// sra rd, rt, shamt  rd = rt >> shsmt      arithmetic
+#define sra 63
+// sllv rd, rt, rs    rd = rt << [rs]4:0
+#define sllv 64
+// srlv rd, rt, rs    rd = rt >> [rs]4:0
+#define srlv 66
+// srav rd, rt, rs    rd = rt >> [rs]4:0      arithmetic
+#define srav 67
+// jr rs        PC = rs
+#define jr 68
+// jalr rs
+#define jalr 69
+// add rd, rs, rt   rd = rs + rt
+#define add 92
+// addu rd, rs, rt    rd = rs + rt        unsigned
+#define addu 93
+// sub rd, rs, rt   rd = rs - rt
+#define sub 94
+// subu rd, rs, rt    rd = rs - rt        unsigned
+#define subu 95
+// and rd, rs, rt   rd = ts & rt
+#define and 96
+// or rd, rs, rt    rd = ts | rt
+#define or 97
+// xor rd, rs, rt   rd = ts ^ rt
+#define xor 98
+// nor rd, rs, rt   rd = ~(rs | rt)
+#define nor 99
+// slt rd, rs, rt   rd = rs < rt ? 1 : 0
+#define slt 102
+// sltu rd, rs, rt    rd = rs < rt ? 1 : 0    unsigned
+#define sltu 103
 
 #endif
