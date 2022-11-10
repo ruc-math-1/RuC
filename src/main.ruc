@@ -48,6 +48,8 @@ int toreprtab(char str[])
 void main()
 {
   int i;
+  
+  strcpy(source_file_path, "main.ruc");
 
   for (i = 0; i < 256; i++)
   {
