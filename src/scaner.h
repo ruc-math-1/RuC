@@ -805,3 +805,5 @@ int scaner()
 
 	return cur;
 }
+
+#ENDIF 1
