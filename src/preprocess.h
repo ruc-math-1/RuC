@@ -1003,6 +1003,7 @@ void relis_include()
   FILE old_input;
   int j;
   char realpath[MAXSTRINGL] = { '\0' };
+  int k;
 
   if (curchar != '\"')
   {
@@ -1040,7 +1041,7 @@ void relis_include()
     j++;
   }
   // strcat(&realpath, filename);
-  for (int k = 0; k < i; k++) {
+  for (k = 0; k < i; k++) {
     realpath[j+k] = filename[k];
   }
 
