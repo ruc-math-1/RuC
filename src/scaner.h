@@ -17,6 +17,9 @@
 #ifndef H_SCANER
 #define H_SCANER 1
 
+#include "../../src/stdio.h"
+#include "../../src/global.h"
+#include "../../src/defs.h"
 
 int getnext()
 {
@@ -25,7 +28,8 @@ int getnext()
     char firstchar;
     char secondchar;
 
-    if (fscanf(input, "%c", &firstchar) == EOF)
+    firstchar = fgetc(input)
+    if (firstchar == EOF)
     {
         return EOF;
     }

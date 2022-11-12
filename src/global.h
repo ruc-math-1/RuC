@@ -17,8 +17,8 @@
 #ifndef _GLOBAL_H
 #define _GLOBAL_H 1
 
-#include "defs.h"
-#include "stdio.h"
+#include "../../src/defs.h"
+#include "../../src/stdio.h"
 
 struct numr
 {

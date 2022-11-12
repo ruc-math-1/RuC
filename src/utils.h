@@ -17,7 +17,7 @@
 #ifndef _UTILS_H
 #define _UTILS_H 1
 
-#include "stdio.h"
+#include "../../src/stdio.h"
 
 void printf_char(char wchar)
 {
