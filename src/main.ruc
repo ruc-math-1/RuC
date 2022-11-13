@@ -63,7 +63,7 @@ void main()
   if (input == NULL)
   {
     printf(" не найден файл %s\n", "keywords.txt");
-    exit(1);
+    t_exit();
   }
 
   getnext();
@@ -78,7 +78,7 @@ void main()
   if (input == NULL)
   {
     printf(" не найден файл %s\n", "main.ruc");
-    exit(1);
+    t_exit();
   }
 
   modetab[1] = 0;

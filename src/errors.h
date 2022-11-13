@@ -479,17 +479,16 @@ void error(int ernum)
       break;
 
     case else_after_elif:
-      printf("ошибка препроцессора: #elif после #else\n");
+      printf("ошибка препроцессора: elif после else\n");
       break;
     case sh_if_not_found:
-      printf("ошибка препроцессора: встречено ключевое слово #elif или #else или #endif, но не было #if(или "
-          "#ifdef)\n");
+      printf("ошибка препроцессора: встречено ключевое слово elif или else или endif, но не было if(или ifdef)\n");
       break;
     case no_ident_after_define:
-      printf("ошибка препроцессора: не найден идентификатор после #define\n");
+      printf("ошибка препроцессора: не найден идентификатор после define\n");
       break;
     case endif_not_found:
-      printf("ошибка препроцессора: не найден #endif\n");
+      printf("ошибка препроцессора: не найден endif\n");
       break;
     case macro_params_not_found:
       printf("ошибка препроцессора: не найдены параметры для макроподстановки\n");
@@ -587,10 +586,10 @@ void error(int ernum)
       printf("в инициализаторе ожидали , или }\n");
       break;
     case no_ident_in_define:
-      printf("после #ОПРЕД (#DEFINE) должен идти идентификатор\n");
+      printf("после ОПРЕД (DEFINE) должен идти идентификатор\n");
       break;
     case not_int_in_define:
-      printf("сейчас в #DEFINE может быть только целое число со знаком\n");
+      printf("сейчас в DEFINE может быть только целое число со знаком\n");
       break;
     case getdigsensorerr:
       printf("вторым параметром GETDIGSENSOR должна быть явная запись массива из целых констант\n");
@@ -620,6 +619,7 @@ void error(int ernum)
     default:
       printf("этот код ошибки я прозевал\n");
   }
+  t_exit();
 
 }
 
@@ -647,10 +647,10 @@ void m_error(int ernum)
       printf("Идентификатор должен начинаться с буквы \n");
       break;
     case must_be_endif:
-      printf("Условный оператор препроцессора должен заканчиваться '#ENDIF' \n");
+      printf("Условный оператор препроцессора должен заканчиваться 'ENDIF' \n");
       break;
     case dont_elif:
-      printf("В этом типе условного оператора не может использоваться '#ELIF' \n");
+      printf("В этом типе условного оператора не может использоваться 'ELIF' \n");
       break;
     case preproces_words_not_exist:
       printf("В препроцессоре не сущетвует написанной команды\n");
@@ -671,7 +671,7 @@ void m_error(int ernum)
       printf("if ещё не реализован");
       break;
     case befor_endif:
-      printf("Перед '#ENDIF' должен стоять условный оператор препроцессора\n");
+      printf("Перед 'ENDIF' должен стоять условный оператор препроцессора\n");
       break;
     case repeat_ident:
       printf("Этот идентификатор препроцессора уже используется\n");
@@ -693,6 +693,7 @@ void m_error(int ernum)
       break;
     default:;
   }
+  t_exit();
 }
 
 #endif

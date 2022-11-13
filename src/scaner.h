@@ -738,7 +738,7 @@ int scan()
 
     default:
     {
-      if (letter() || curchar == '#')
+      if (letter() || curchar == 43)
       {
         int oldrepr = rp;
         int r;
@@ -785,6 +785,7 @@ int scan()
       {
         printf("плохой символ %i\n", curchar);
         nextch();
+        t_exit();
       }
     }
   }
