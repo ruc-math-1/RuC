@@ -503,6 +503,7 @@
 #define TAddrtovald								-341
 #define TBeginit								-342
 #define TStructinit								-343
+#define TFprintf                  -344
 
 
 // Коды ошибок

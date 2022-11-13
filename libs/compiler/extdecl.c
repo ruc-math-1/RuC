@@ -2255,7 +2255,83 @@ void statement()
 				totree(sumsize);
 			}
 				break;
+			case FPRINTF:
+			{
+				int formatstr[MAXSTRINGL];
+				int formattypes[MAXPRINTFPARAMS];
+				int placeholders[MAXPRINTFPARAMS];
+				int paramnum = 0;
+				int sumsize = 0;
+				int i = 0;
+				int fnum;
 
+				mustbe(LEFTBR, no_leftbr_in_printf);
+				mustbeint();
+				mustbe(COMMA, no_comma_in_act_params_stanfunc);
+
+				if (scaner() != STRING)	//выкушиваем форматную строку
+				{
+					error(wrong_first_printf_param);
+				}
+
+				for (i = 0; i < num; i++)
+				{
+					formatstr[i] = lexstr[i];
+				}
+				formatstr[num] = 0;
+
+				paramnum = evaluate_params(fnum = num, formatstr, formattypes, placeholders);
+
+				for (i = 0; scaner() == COMMA; i++)
+				{
+					if (i >= paramnum)
+					{
+						error(wrong_printf_param_number);
+					}
+
+					scaner();
+
+					exprassn(1);
+					toval();
+					totree(TExprend);
+
+					if (formattypes[i] == LFLOAT && ansttype == LINT)
+					{
+						insertwiden();
+					}
+					else if (formattypes[i] != ansttype)
+					{
+						bad_printf_placeholder = placeholders[i];
+						error(wrong_printf_param_type);
+					}
+
+					sumsize += szof(formattypes[i]);
+					--sopnd;
+				}
+
+				if (cur != RIGHTBR)
+				{
+					error(no_rightbr_in_printf);
+				}
+
+				if (i != paramnum)
+				{
+					error(wrong_printf_param_number);
+				}
+
+				totree(TString);
+				totree(fnum);
+
+				for (i = 0; i < fnum; i++)
+				{
+					totree(formatstr[i]);
+				}
+				totree(TExprend);
+
+				totree(TFprintf);
+				totree(sumsize);
+			}
+				break;
 			case GETID:
 			{
 				mustbe(LEFTBR, no_leftbr_in_printid);
