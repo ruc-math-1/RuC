@@ -5,10 +5,9 @@
 #include "stdio.h"
 #include "utils.h"
 
-void error(int a) {}
-void m_error(int a) {}
-
-void warning(int a) {}
+void error(int);
+void m_error(int);
+void warning(int);
 
 void printident(int r)
 {
