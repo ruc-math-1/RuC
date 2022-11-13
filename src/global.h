@@ -20,11 +20,10 @@
 #include "defs.h"
 #include "stdio.h"
 
-struct numr
-{
+struct {
   int first;
   int second;
-};
+} numr;
 
 FILE input, output;
 char source_file_path[MAXSTRINGL];

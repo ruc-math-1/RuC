@@ -747,7 +747,7 @@ int scan()
 				ansttype = LFLOAT;
 			}
 
-			//double_to_numr(&numr, &numdouble);
+			dtonumr(&numr, &numdouble);
 			return NUMBER;
 		}
 

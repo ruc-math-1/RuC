@@ -422,6 +422,8 @@
 
 #define SH_INCLUDE -96 
 
+#define _DTONUMR -97
+
 #define LVOIDASTER -150
 #define _ABSI -151
 

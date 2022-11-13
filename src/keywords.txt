@@ -103,3 +103,5 @@ PUTC putc ПОМЕСТИТЬЛ поместитьл
 GETC getc ПОЛУЧИТЬЛ получитьл
 
 #INCLUDE #include #ВКЛЮЧИТЬ #включить
+
+DTONUMR dtonumr ДВЧИСЛ двчисл
