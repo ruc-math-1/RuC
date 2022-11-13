@@ -187,7 +187,7 @@ void tablesandtree()
         break;
       case TConstd:
       {
-        memcpy(&numdouble, &tree[i], sizeof(double));
+        dtonumr(&numdouble, &tree[i]);
         i += 2;
         fprintf(output, "TConstd %f\n", numdouble);
       }
@@ -374,16 +374,16 @@ void tablesandcode()
     fprintf(output, "pc %i) ", i);
     switch (mem[i++])
     {
-      case PRINT:
+      case _PRINT:
         fprintf(output, "PRINT %i\n", mem[i++]);
         break;
-      case PRINTID:
+      case _PRINTID:
         fprintf(output, "PRINTID %i\n", mem[i++]);
         break;
-      case PRINTF:
+      case _PRINTF:
         fprintf(output, "PRINTF %i\n", mem[i++]);
         break;
-      case GETID:
+      case _GETID:
         fprintf(output, "GETID %i\n", mem[i++]);
         break;
       case SETMOTORC:
@@ -431,10 +431,10 @@ void tablesandcode()
       case SEMPOSTC:
         fprintf(output, "TSEMPOST\n");
         break;
-      case TINIT:
+      case _TINIT:
         fprintf(output, "TINIT\n");
         break;
-      case TDESTROY:
+      case _TDESTROY:
         fprintf(output, "TDESTROY\n");
         break;
       case GETNUMC:
@@ -541,9 +541,9 @@ void tablesandcode()
         break;
       case LID:
       {
-        memcpy(&numdouble, &mem[i], sizeof(double));
+        dtonumr(&numdouble, &mem[i]);
         i += 2;
-        fprintf(output, "LID %.15f\n", numdouble);
+        fprintf(output, "LID %f\n", numdouble);
       }
         break;
       case LOAD:
