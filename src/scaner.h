@@ -17,9 +17,22 @@
 #ifndef H_SCANER
 #define H_SCANER 1
 
-#include "../../src/stdio.h"
-#include "../../src/global.h"
-#include "../../src/defs.h"
+#include "defs.h"
+#include "errors.h"
+#include "global.h"
+#include "stdio.h"
+#include "utils.h"
+
+
+int getnext();
+void nextch();
+
+int letter();
+int digit();
+int equal(int, int);
+
+int scan();
+int scaner();
 
 int getnext()
 {
@@ -28,7 +41,7 @@ int getnext()
     char firstchar;
     char secondchar;
 
-    firstchar = fgetc(input)
+    firstchar = fgetc(input);
     if (firstchar == EOF)
     {
         return EOF;
@@ -68,7 +81,7 @@ void endofline()
             }
         }
         // реализовано на VM
-        fflush(stdout);
+        //fflush(stdout);
     }
 }
 
@@ -633,25 +646,25 @@ int scan()
 		case '7':
 		case '8':
 		case '9':
-		{
-			int flagint = 1;
-			int flagtoolong = 0;
-			double k;
+	   {
+      int flagint = 1;
+      int flagtoolong = 0;
+      double k;
 
-			num = 0;
-			numdouble = 0.0;
-			while (digit())
-			{
-				numdouble = numdouble * 10 + (curchar - '0');
-				if (numdouble > (double)INT_MAX)
-				{
-					flagtoolong = 1;
-					flagint = 0;
-				}
+      num = 0;
+      numdouble = 0.0;
+      while (digit())
+      {
+        numdouble = numdouble * 10 + (curchar - '0');
+        if (numdouble > INT_MAX)
+        {
+          flagtoolong = 1;
+          flagint = 0;
+        }
 
-				num = num * 10 + (curchar - '0');
-				nextch();
-			}
+        num = num * 10 + (curchar - '0');
+        nextch();
+      }
 
 			if (curchar == '.')
 			{
@@ -734,65 +747,63 @@ int scan()
 				ansttype = LFLOAT;
 			}
 
-			double_to_numr(&numr, &numdouble);
+			//double_to_numr(&numr, &numdouble);
 			return NUMBER;
 		}
 
-		default:
-		{
-			/* if (letter() || curchar == '#')
-			{
-				int oldrepr = rp;
-				int r;
-				rp += 2;
-				hash = 0;
 
-				// решетка на 1 месте -- значит, ключевое слово препроцессора
-				do
-				{
-					hash += curchar;
-					reprtab[rp++] = curchar;
-					nextch();
-				} while (letter() || digit());
+    default:
+    {
+      if (letter() || curchar == '#')
+      {
+        int oldrepr = rp;
+        int r;
+        rp += 2;
+        hash = 0;
 
-				hash &= 255;
-				reprtab[rp++] = 0;
-				r = hashtab[hash];
-				if (r)
-				{
-					do
-					{
-						if (equal(r, oldrepr))
-						{
-							rp = oldrepr;
-							return (reprtab[r + 1] < 0) ? reprtab[r + 1] : (repr = r, IDENT);
-						}
-						else
-						{
-							r = reprtab[r];
-						}
-					} while (r);
-				}
+        // решетка на 1 месте -- значит, ключевое слово препроцессора
+        do
+        {
+          hash += curchar;
+          reprtab[rp++] = curchar;
+          nextch();
+        } while (letter() || digit());
 
-				reprtab[oldrepr] = hashtab[hash];
-				repr = hashtab[hash] = oldrepr;
-				reprtab[repr + 1] = (keywordsnum) ? -((++keywordsnum - 2) / 4) : 1;
-					// == 0 - только MAIN,
-					// <  0 - ключевые слова,
-					// == 1 - обычные иденты
-			*/
+        hash &= 255;
+        reprtab[rp++] = 0;
+        r = hashtab[hash];
+        if (r)
+        {
+          do
+          {
+            if (equal(r, oldrepr))
+            {
+              rp = oldrepr;
+              return (reprtab[r + 1] < 0) ? reprtab[r + 1] : (repr = r, IDENT);
+            }
+            else
+            {
+              r = reprtab[r];
+            }
+          } while (r);
+        }
 
-				return IDENT;
-			}
-			else
-			{
-				printf("плохой символ %c %i\n", curchar, curchar);
-				nextch();
-				// поменять в bootstrap
-				t_exit();
-			}
-		}
-	}
+        reprtab[oldrepr] = hashtab[hash];
+        repr = hashtab[hash] = oldrepr;
+        reprtab[repr + 1] = (keywordsnum) ? -((++keywordsnum - 2) / 4) : 1;
+          // == 0 - только MAIN,
+          // <  0 - ключевые слова,
+          // == 1 - обычные иденты
+
+        return IDENT;
+      }
+      else
+      {
+        printf("плохой символ %i\n", curchar);
+        nextch();
+      }
+    }
+  }
 }
 
 int scaner()
@@ -810,4 +821,4 @@ int scaner()
 	return cur;
 }
 
-#ENDIF 1
+#endif
