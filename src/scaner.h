@@ -26,7 +26,7 @@ int getnext()
     char secondchar;
 
     firstchar = fgetc(input);
-    if (firstchar == EOF)
+    if (firstchar == 2047)
     {
         return EOF;
     }
@@ -222,6 +222,111 @@ int equal(int i, int j)
 	}
 
 	return 0;
+}
+
+int scannumbr() {
+  int flagint = 1;
+  int flagtoolong = 0;
+  double k;
+
+  num = 0;
+  numdouble = 0.0;
+  while (digit())
+  {
+    numdouble = numdouble * 10 + (curchar - '0');
+    if (numdouble > INT_MAX)
+    {
+      flagtoolong = 1;
+      flagint = 0;
+    }
+
+    num = num * 10 + (curchar - '0');
+    nextch();
+  }
+
+  if (curchar == '.')
+  {
+    flagint = 0;
+    nextch();
+    k = 0.1;
+
+    while (digit())
+    {
+      numdouble += (curchar - '0') * k;
+      k *= 0.1;
+      nextch();
+    }
+  }
+
+  if (ispower())
+  {
+    int d = 0;
+    int k = 1;
+    int i;
+
+    nextch();
+    if (curchar == '-')
+    {
+      flagint = 0;
+      nextch();
+      k = -1;
+    }
+    else if (curchar == '+')
+    {
+      nextch();
+    }
+
+    if (!digit())
+    {
+      error(must_be_digit_after_exp);
+    }
+
+    while (digit())
+    {
+      d = d * 10 + curchar - '0';
+      nextch();
+    }
+
+    if (flagint)
+    {
+      for (i = 1; i <= d; i++)
+      {
+        num *= 10;
+      }
+    }
+
+    if (k > 0)
+    {
+      for (i = 1; i <= d; i++)
+      {
+        numdouble *= 10;
+      }
+    }
+    else
+    {
+      for (i = 1; i <= d; i++)
+      {
+        numdouble *= 0.1;
+      }
+    }
+  }
+
+  if (flagint)
+  {
+    ansttype = LINT;
+    return NUMBER;
+  }
+  else
+  {
+    if (flagtoolong)
+    {
+      warning(too_long_int);
+    }
+    ansttype = LFLOAT;
+  }
+
+  dtonumr(&numr, &numdouble);
+  return NUMBER;
 }
 
 int scan()
@@ -621,124 +726,29 @@ int scan()
 				return DOT;
 			}
 		case '0':
+      return scannumbr();
 		case '1':
+      return scannumbr();
 		case '2':
+      return scannumbr();
 		case '3':
+      return scannumbr();
 		case '4':
+      return scannumbr();
 		case '5':
+      return scannumbr();
 		case '6':
+      return scannumbr();
 		case '7':
+      return scannumbr();
 		case '8':
+      return scannumbr();
 		case '9':
-	   {
-      int flagint = 1;
-      int flagtoolong = 0;
-      double k;
-
-      num = 0;
-      numdouble = 0.0;
-      while (digit())
-      {
-        numdouble = numdouble * 10 + (curchar - '0');
-        if (numdouble > INT_MAX)
-        {
-          flagtoolong = 1;
-          flagint = 0;
-        }
-
-        num = num * 10 + (curchar - '0');
-        nextch();
-      }
-
-			if (curchar == '.')
-			{
-				flagint = 0;
-				nextch();
-				k = 0.1;
-
-				while (digit())
-				{
-					numdouble += (curchar - '0') * k;
-					k *= 0.1;
-					nextch();
-				}
-			}
-
-			if (ispower())
-			{
-				int d = 0;
-				int k = 1;
-				int i;
-
-				nextch();
-				if (curchar == '-')
-				{
-					flagint = 0;
-					nextch();
-					k = -1;
-				}
-				else if (curchar == '+')
-				{
-					nextch();
-				}
-
-				if (!digit())
-				{
-					error(must_be_digit_after_exp);
-				}
-
-				while (digit())
-				{
-					d = d * 10 + curchar - '0';
-					nextch();
-				}
-
-				if (flagint)
-				{
-					for (i = 1; i <= d; i++)
-					{
-						num *= 10;
-					}
-				}
-
-				if (k > 0)
-				{
-					for (i = 1; i <= d; i++)
-					{
-						numdouble *= 10;
-					}
-				}
-				else
-				{
-					for (i = 1; i <= d; i++)
-					{
-						numdouble *= 0.1;
-					}
-				}
-			}
-
-			if (flagint)
-			{
-				ansttype = LINT;
-				return NUMBER;
-			}
-			else
-			{
-				if (flagtoolong)
-				{
-					warning(too_long_int);
-				}
-				ansttype = LFLOAT;
-			}
-
-			dtonumr(&numr, &numdouble);
-			return NUMBER;
-		}
-
+      return scannumbr();
 
     default:
     {
-      if (letter() || curchar == 43)
+      if (letter() || curchar == 35)
       {
         int oldrepr = rp;
         int r;
@@ -783,7 +793,9 @@ int scan()
       }
       else
       {
-        printf("плохой символ %i\n", curchar);
+        printf("плохой символ %i ", curchar);
+        printf_char(curchar);
+        printf("\n");
         nextch();
         t_exit();
       }
