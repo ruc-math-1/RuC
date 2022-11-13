@@ -31,7 +31,7 @@ int toreprtab(char str[])
   hash = 0;
   rp += 2;
 
-  for (i = 0; str[i] != 0; i++)
+  for (i = 0; i < strlen(str); i++)
   {
     hash += str[i];
     reprtab[rp++] = str[i];
