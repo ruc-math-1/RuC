@@ -453,6 +453,8 @@
 
 #define SH_INCLUDE -96
 
+#define DTONUMR -97
+
 #define LVOIDASTER								-150
 #define ABSI									-151
 

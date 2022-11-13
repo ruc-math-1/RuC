@@ -512,6 +512,19 @@ void mustbepointstring()
 	}
 }
 
+void mustbeptr()
+{
+	scaner();
+	exprassn(1);
+	toval();
+	sopnd--;
+
+	if (!(ansttype > 0 && modetab[ansttype] == MPOINT))
+	{
+		error(not_point_string_in_stanfunc);
+	}
+}
+
 void mustberow()
 {
 	scaner();
@@ -924,6 +937,12 @@ void primaryexpr()
 		else if (func == GETC) 
 		{
 			stackoperands[++sopnd] = ansttype = LCHAR;
+		}
+		else if (func == DTONUMR) 
+		{
+			mustbeptr();
+			mustbe(COMMA, no_comma_in_act_params_stanfunc);
+			mustbeptr();
 		}
 		else
 		{
