@@ -78,20 +78,20 @@ int newdecl(int type, int elemtype)
   return check_duplicates();
 }
 
-int evaluate_params(int num, int formatstr[], int formattypes[], int placeholders[])
+int evaluate_params(int _num, int formatstr[], int formattypes[], int placeholders[])
 {
   int numofparams = 0;
   int i = 0;
   int fsi;
 
   /*
-    for (i=0; i<num; i++)
+    for (i=0; i<_num; i++)
     {
       printf("%c %i\n", formatstr[i], formatstr[i]);
     }
   */
 
-  for (i = 0; i < num; i++)
+  for (i = 0; i < _num; i++)
   {
     if (formatstr[i] == '%')
     {
@@ -2093,7 +2093,7 @@ void statement()
   }
   else if (cur == IDENT && next == COLON)
   {
-    int id;
+    int _id;
     int i;
     int flag = 1;
 
@@ -2107,20 +2107,20 @@ void statement()
 
     if (flag)
     {
-      totree(id = toidentab(1, 0));
+      totree(_id = toidentab(1, 0));
       gotost[pgotost++] = id;     // это определение метки, если она встретилась до переходов на нее
       gotost[pgotost++] = -line;
     }
     else
     {
-      id = gotost[i - 2];
+      _id = gotost[i - 2];
       repr = identab[id + 1];
 
       if (gotost[i - 1] < 0)
       {
         error(repeated_label);
       }
-      totree(id);
+      totree(_id);
     }
     identab[id + 2] = 1;
 
@@ -2422,14 +2422,14 @@ void statement()
         }
         else
         {
-          int id = gotost[i - 2];
+          int _id = gotost[i - 2];
 
-          if (gotost[id + 1] < 0) // метка уже была
+          if (gotost[_id + 1] < 0) // метка уже была
           {
-            totree(id);
+            totree(_id);
             fix = 0;
           } else {
-            totree(gotost[pgotost++] = id);
+            totree(gotost[pgotost++] = _id);
           }
         }
 
@@ -2787,7 +2787,8 @@ void block(int b)
 
     do
     {
-      decl_id(idorpnt(after_type_must_be_ident, firstdecl));
+      int _idorpnt = idorpnt(after_type_must_be_ident, firstdecl);
+      decl_id(_idorpnt);
 
       if (next == COMMA)
       {
