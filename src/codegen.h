@@ -449,7 +449,7 @@ void Stmt_gen()
     {
       int id1 = tree[tc++];
       int a;
-      int id = id1 > 0 ? id1 : -id1;
+      int _id = id1 > 0 ? id1 : -id1;
 
       tocode(B);
 
@@ -459,17 +459,17 @@ void Stmt_gen()
       }
       else							// метка еще не описана
       {
-        identab[id + 3] = -pc;
+        identab[_id + 3] = -pc;
         tocode(id1 < 0 ? 0 : a);	// первый раз встретился переход на еще не описанную метку или нет
       }
     }
       break;
     case TLabel:
     {
-      int id = tree[tc++];
+      int _id = tree[tc++];
       int a;
 
-      if ((a = identab[id + 3]) < 0)	// были переходы на метку
+      if ((a = identab[_id + 3]) < 0)	// были переходы на метку
       {
         while (a)					// проставить ссылку на метку во всех ранних переходах
         {
@@ -478,7 +478,7 @@ void Stmt_gen()
           a = r;
         }
       }
-      identab[id + 3] = pc;
+      identab[_id + 3] = pc;
     }
       break;
     case TSwitch:
