@@ -619,6 +619,7 @@ void error(int ernum)
     default:
       printf("этот код ошибки я прозевал\n");
   }
+  printf("\tсмотри символ %i:%i\n", _row, _col);
   t_exit();
 
 }
