@@ -196,17 +196,18 @@ void mustbe(int what, int e)
   }
 }
 
-void totree(int op)
+void totree(int opp)
 {
-  tree[tc++] = op;
+  //printf("Добавлено к дереву %i\n", opp);
+  tree[tc++] = opp;
 }
 
-void totreef(int op)
+void totreef(int opp)
 {
-  tree[tc++] = op;
+  tree[tc++] = opp;
 
   if (ansttype == LFLOAT &&
-    ((op >= ASS && op <= DIVASS) || (op >= ASSAT && op <= DIVASSAT) || (op >= EQEQ && op <= UNMINUS)))
+    ((opp >= ASS && opp <= DIVASS) || (opp >= ASSAT && opp <= DIVASSAT) || (opp >= EQEQ && opp <= UNMINUS)))
   {
     tree[tc - 1] += 50;
   }
@@ -327,7 +328,7 @@ int toidentab(int f, int type)
 
 void binop(int sp)
 {
-  int op = stackop[sp];
+  int opp = stackop[sp];
   int rtype = stackoperands[sopnd--];
   int ltype = stackoperands[sopnd];
 
@@ -336,8 +337,8 @@ void binop(int sp)
     error(operand_is_pointer);
   }
 
-  if ((op == LOGOR || op == LOGAND || op == LOR || op == LEXOR || op == LAND || op == LSHL || op == LSHR ||
-    op == LREM) && (is_float(ltype) || is_float(rtype)))
+  if ((opp == LOGOR || opp == LOGAND || opp == LOR || opp == LEXOR || opp == LAND || opp == LSHL || opp == LSHR ||
+    opp == LREM) && (is_float(ltype) || is_float(rtype)))
   {
     error(int_op_for_float);
   }
@@ -357,17 +358,17 @@ void binop(int sp)
     ansttype = LFLOAT;
   }
 
-  if (op == LOGOR || op == LOGAND)
+  if (opp == LOGOR || opp == LOGAND)
   {
-    totree(op);
+    totree(opp);
     tree[stacklog[sp]] = tc++;
   }
   else
   {
-    totreef(op);
+    totreef(opp);
   }
 
-  if (op >= EQEQ && op <= LGE)
+  if (opp >= EQEQ && opp <= LGE)
   {
     ansttype = LINT;
   }
@@ -1297,7 +1298,7 @@ void postexpr()
 
   if (next == INC || next == DEC) // a++, a--
   {
-    int op;
+    int opp;
 
     if (!is_int(ansttype) && !is_float(ansttype))
     {
@@ -1309,13 +1310,13 @@ void postexpr()
       error(unassignable_inc);
     }
 
-    op = (next == INC) ? POSTINC : POSTDEC;
+    opp = (next == INC) ? POSTINC : POSTDEC;
     if (anst == ADDR)
     {
-      op += 4;
+      opp += 4;
     }
     scaner();
-    totreef(op);
+    totreef(opp);
 
     if (anst == IDENT)
     {
@@ -1327,7 +1328,7 @@ void postexpr()
 
 void unarexpr()
 {
-  int op = cur;
+  int opp = cur;
 
   if (cur == LNOT || cur == LOGNOT || cur == LPLUS || cur == LMINUS || cur == LAND || cur == LMULT || cur == INC ||
     cur == DEC)
@@ -1344,9 +1345,9 @@ void unarexpr()
 
       if (anst == ADDR)
       {
-        op += 4;
+        opp += 4;
       }
-      totreef(op);
+      totreef(opp);
 
       if (anst == IDENT)
       {
@@ -1359,7 +1360,7 @@ void unarexpr()
       scaner();
       unarexpr();
 
-      if (op == LAND)
+      if (opp == LAND)
       {
         if (anst == VAL)
         {
@@ -1374,7 +1375,7 @@ void unarexpr()
         stackoperands[sopnd] = ansttype = newdecl(MPOINT, ansttype);
         anst = VAL;
       }
-      else if (op == LMULT)
+      else if (opp == LMULT)
       {
         if (!is_pointer(ansttype))
         {
@@ -1393,18 +1394,18 @@ void unarexpr()
       {
         toval();
 
-        if ((op == LNOT || op == LOGNOT) && ansttype == LFLOAT)
+        if ((opp == LNOT || opp == LOGNOT) && ansttype == LFLOAT)
         {
           error(int_op_for_float);
         }
-        else if (op == LMINUS)
+        else if (opp == LMINUS)
         {
           totreef(UNMINUS);
         }
-        else if (op == LPLUS);
+        else if (opp == LPLUS);
         else
         {
-          totree(op);
+          totree(opp);
         }
         anst = VAL;
       }
@@ -1435,43 +1436,43 @@ void exprassninbrkts(int er)
   mustbe(RIGHTBR, er);
 }
 
-int prio(int op)  // возвращает 0, если не операция
+int prio(int opp)  // возвращает 0, если не операция
 {
-  return op == LOGOR
+  return opp == LOGOR
         ? 1
-        : op == LOGAND
+        : opp == LOGAND
           ? 2
-          : op == LOR
+          : opp == LOR
             ? 3
-            : op == LEXOR
+            : opp == LEXOR
               ? 4
-              : op == LAND
+              : opp == LAND
                 ? 5
-                : op == EQEQ
+                : opp == EQEQ
                   ? 6
-                  : op == NOTEQ
+                  : opp == NOTEQ
                     ? 6
-                    : op == LLT
+                    : opp == LLT
                       ? 7
-                      : op == LGT
+                      : opp == LGT
                         ? 7
-                        : op == LLE
+                        : opp == LLE
                           ? 7
-                          : op == LGE
+                          : opp == LGE
                             ? 7
-                            : op == LSHL
+                            : opp == LSHL
                               ? 8
-                              : op == LSHR
+                              : opp == LSHR
                                 ? 8
-                                : op == LPLUS
+                                : opp == LPLUS
                                   ? 9
-                                  : op == LMINUS
+                                  : opp == LMINUS
                                     ? 9
-                                    : op == LMULT
+                                    : opp == LMULT
                                       ? 10
-                                      : op == LDIV
+                                      : opp == LDIV
                                         ? 10
-                                        : op == LREM
+                                        : opp == LREM
                                           ? 10
                                           : 0;
 }
@@ -1525,9 +1526,16 @@ int intopassn(int next)
 
 int opassn()
 {
-  return (next == ASS || next == MULTASS || next == DIVASS || next == PLUSASS || next == MINUSASS || intopassn(next))
-        ? op = next
-        : 0;
+  if (next == ASS || next == MULTASS || next == DIVASS || next == PLUSASS || next == MINUSASS || intopassn(next)) {
+    op = next;
+    //printf("Debgu: i %i\n", op);
+    //printid(op);
+    return op;
+  } else
+    return 0;
+  // return (next == ASS || next == MULTASS || next == DIVASS || next == PLUSASS || next == MINUSASS || intopassn(next))
+  //       ? op = next
+  //       : 0;
 }
 
 void condexpr()
@@ -2697,7 +2705,7 @@ int gettype()
     }
     else if (next == IDENT)
     {
-      int l = reprtab[repr + 1];
+      int _l = reprtab[repr + 1];
       scaner();
       if (next == BEGIN)  // struct key {
       {
@@ -2715,13 +2723,13 @@ int gettype()
       }
       else        // struct key это применение типа
       {
-        if (l == 1)
+        if (_l == 1)
         {
           error(ident_is_not_declared);
         }
 
-        was_struct_with_arr = identab[l + 3] - 1000;
-        return (identab[l + 2]);
+        was_struct_with_arr = identab[_l + 3] - 1000;
+        return (identab[_l + 2]);
       }
     }
     else
@@ -2760,7 +2768,7 @@ void block(int b)
   int i;
   int olddispl;
   int oldlg = lg;
-  int firstdecl;
+  int _firstdecl;
 
   inswitch = b < 0;
   totree(TBegin);
@@ -2777,7 +2785,7 @@ void block(int b)
     int repeat = 1;
 
     scaner();
-    firstdecl = gettype();
+    _firstdecl = gettype();
 
     if (wasstructdef && next == SEMICOLON)
     {
@@ -2787,7 +2795,7 @@ void block(int b)
 
     do
     {
-      int _idorpnt = idorpnt(after_type_must_be_ident, firstdecl);
+      int _idorpnt = idorpnt(after_type_must_be_ident, _firstdecl);
       decl_id(_idorpnt);
 
       if (next == COMMA)
@@ -3114,7 +3122,7 @@ void ext_decl()
   {
     int repeat = 1;
     int funrepr;
-    int first = 1;
+    int _first = 1;
 
     wasstructdef = 0;
     scaner();
@@ -3176,7 +3184,7 @@ void ext_decl()
         funrepr = repr;
         scaner();
         scaner();
-        type = func_declarator(first, 3, firsttype);  // выкушает все параметры до ) включительно
+        type = func_declarator(_first, 3, firsttype);  // выкушает все параметры до ) включительно
 
         if (next == BEGIN)
         {
@@ -3228,7 +3236,7 @@ void ext_decl()
       if (next == COMMA)
       {
         scaner();
-        first = 0;
+        _first = 0;
       }
       else if (next == SEMICOLON)
       {

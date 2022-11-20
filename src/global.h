@@ -9,25 +9,99 @@ struct {
   int second;
 } numr;
 
-FILE input, output;
+FILE input;
+FILE output;
 char source_file_path[MAXSTRINGL];
 
 double numdouble;
-int line = 0, mline = 0, charnum = 1, m_charnum = 1, cur, next, next1, num, hash, repr, keywordsnum, wasstructdef = 0;
+int line = 0;
+int mline = 0; 
+int charnum = 1; 
+int m_charnum = 1; 
+int cur;
+int next; 
+int next1; 
+int num; 
+int hash; 
+int repr; 
+int keywordsnum; 
+int wasstructdef = 0;
 
-int source[SOURCESIZE], lines[LINESSIZE];
-int before_source[SOURCESIZE], mlines[LINESSIZE], m_conect_lines[LINESSIZE];
-int nextchar, curchar, func_def;
-int hashtab[256], reprtab[MAXREPRTAB], rp = 1, identab[MAXIDENTAB], id = 2, modetab[MAXMODETAB], md = 1, startmode = 1;
-int stack[100], stackop[100], stackoperands[100], stacklog[100], sp = 0, sopnd = -1, aux = 0, lastid, curid = 2,
-  lg = -1, displ = -3, maxdispl = 3, maxdisplg = 3, type, op = 0, inass = 0, firstdecl;
-int iniprocs[INIPROSIZE], procd = 1, arrdim, arrelemlen, was_struct_with_arr, usual;
-int instring = 0, inswitch = 0, inloop = 0, lexstr[MAXSTRINGL + 1];
-int tree[MAXTREESIZE], tc = 0, mtree[MAXTREESIZE], mtc = 0, mem[MAXMEMSIZE], pc = 4, functions[FUNCSIZE], funcnum = 2,
-  functype, kw = 0, blockflag = 1, entry, wasmain = 0, wasret, wasdefault, notrobot = 1, prep_flag = 0;
-int adcont, adbreak, adcase, adandor, switchreg;
-int predef[FUNCSIZE], prdf = -1, emptyarrdef;
-int gotost[1000], pgotost;
+int source[SOURCESIZE];
+int lines[LINESSIZE];
+int before_source[SOURCESIZE];
+int mlines[LINESSIZE];
+int m_conect_lines[LINESSIZE];
+int nextchar; 
+int curchar;
+int func_def;
+int hashtab[256]; 
+int reprtab[MAXREPRTAB]; 
+int rp = 1;
+int identab[MAXIDENTAB];
+int id = 2;
+int modetab[MAXMODETAB];
+int md = 1;
+int startmode = 1;
+
+int stack[100];
+int stackop[100];
+int stackoperands[100];
+int stacklog[100];
+int sp = 0;
+int sopnd = -1;
+int aux = 0;
+int lastid;
+int curid = 2;
+int lg = -1;
+int displ = -3;
+int maxdispl = 3;
+int maxdisplg = 3;
+int type;
+int op = 0;
+int inass = 0;
+int firstdecl;
+
+int iniprocs[INIPROSIZE];
+int procd = 1;
+int arrdim;
+int arrelemlen;
+int was_struct_with_arr;
+int usual;
+
+int instring = 0;
+int inswitch = 0;
+int inloop = 0;
+int lexstr[MAXSTRINGL];
+int tree[MAXTREESIZE];
+int tc = 0;
+int mtree[MAXTREESIZE];
+int mtc = 0;
+int mem[MAXMEMSIZE];
+int pc = 4;
+int functions[FUNCSIZE];
+int funcnum = 2;
+int functype;
+int kw = 0;
+int blockflag = 1;
+int entry;
+int wasmain = 0;
+int wasret;
+int wasdefault;
+int notrobot = 1;
+int prep_flag = 0;
+
+int adcont;
+int adbreak;
+int adcase;
+int adandor;
+int switchreg;
+int predef[FUNCSIZE];
+int prdf = -1;
+int emptyarrdef;
+
+int gotost[1000];
+int pgotost;
 
 int _row = 1;
 int _col = 0;
@@ -40,8 +114,14 @@ int _col = 0;
  *  в ansttype всегда тип возвращаемого значения
  *  если значение указателя, адрес массива или строки лежит на верхушке стека, то это VAL, а не ADDR
  */
-int anst, anstdispl, ansttype, leftansttype = -1;
-int g, l, x, iniproc;
+int anst;
+int anstdispl;
+int ansttype;
+int leftansttype = -1;
+int g;
+int l;
+int x;
+int iniproc;
 
 int bad_printf_placeholder = 0;
 

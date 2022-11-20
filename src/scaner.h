@@ -827,6 +827,7 @@ int scaner()
 		}
 	*/
 
+  printf("Сканер обнаружил символ %i\n", cur);
 	return cur;
 }
 
