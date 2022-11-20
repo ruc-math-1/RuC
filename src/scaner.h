@@ -18,6 +18,11 @@ int equal(int, int);
 int scan();
 int scaner();
 
+void reset_row_col() {
+  _row = 1;
+  _col = 0;
+}
+
 int getnext()
 {
     // reads UTF-8
@@ -26,6 +31,13 @@ int getnext()
     char secondchar;
 
     firstchar = fgetc(input);
+    _col++;
+
+    if (firstchar == 10) {
+      _row++;
+      _col = 0;
+    }
+
     if (firstchar == 2047)
     {
         return EOF;

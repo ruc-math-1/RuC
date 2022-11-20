@@ -128,6 +128,7 @@ void main()
   getnext();
   nextch();
   next = scan();
+  reset_row_col();
 
   ext_decl(); // генерация дерева
 

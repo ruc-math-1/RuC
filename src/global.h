@@ -29,6 +29,9 @@ int adcont, adbreak, adcase, adandor, switchreg;
 int predef[FUNCSIZE], prdf = -1, emptyarrdef;
 int gotost[1000], pgotost;
 
+int _row = 1;
+int _col = 0;
+
 /*
  *  anst = VAL - значение на стеке
  *  anst = ADDR - на стеке адрес значения
