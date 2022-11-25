@@ -35,7 +35,11 @@ int modeeq(int first_mode, int second_mode)
 
   mode = modetab[first_mode];
   // определяем, сколько полей надо сравнивать для различных типов записей
-  n = mode == MSTRUCT || mode == MFUNCTION ? 2 + modetab[first_mode + 2] : 1;
+  if (mode == MSTRUCT || mode == MFUNCTION) 
+    n = 2 + modetab[first_mode + 2];
+  else 
+    n = 1;
+  //n = mode == MSTRUCT || mode == MFUNCTION ? 2 + modetab[first_mode + 2] : 1;
 
   for (i = 1; i <= n && flag; i++)
   {
@@ -109,21 +113,29 @@ int evaluate_params(int _num, int formatstr[], int formattypes[], int placeholde
               // - не забыть внести его в switch в bad_printf_placeholder
       {
         case 'i':
+          formattypes[numofparams++] = LINT;
+          break;
         case 1094:  // 'ц'
           formattypes[numofparams++] = LINT;
           break;
 
         case 'c':
+          formattypes[numofparams++] = LCHAR;
+          break;
         case 1083:  // л
           formattypes[numofparams++] = LCHAR;
           break;
 
         case 'f':
+          formattypes[numofparams++] = LFLOAT;
+          break;
         case 1074:  // в
           formattypes[numofparams++] = LFLOAT;
           break;
 
         case 's':
+          formattypes[numofparams++] = newdecl(MARRAY, LCHAR);
+          break;
         case 1089:  // с
           formattypes[numofparams++] = newdecl(MARRAY, LCHAR);
           break;
@@ -150,7 +162,15 @@ int evaluate_params(int _num, int formatstr[], int formattypes[], int placeholde
 
 int szof(int type)
 {
-  return next == LEFTSQBR ? 1 : type == LFLOAT ? 2 : (type > 0 && modetab[type] == MSTRUCT) ? modetab[type + 1] : 1;
+  if (next == LEFTSQBR)
+    return 1;
+  else if (type == LFLOAT) 
+    return 2;
+  else if (type > 0 && modetab[type] == MSTRUCT)
+    return modetab[type + 1];
+  else
+    return 1;
+  //return next == LEFTSQBR ? 1 : type == LFLOAT ? 2 : (type > 0 && modetab[type] == MSTRUCT) ? modetab[type + 1] : 1;
 }
 
 int is_row_of_char(int t)
@@ -198,7 +218,7 @@ void mustbe(int what, int e)
 
 void totree(int opp)
 {
-  //printf("Добавлено к дереву %i\n", opp);
+  printf("RuC: Добавлено к дереву %i\n", opp);
   tree[tc++] = opp;
 }
 
@@ -220,7 +240,11 @@ int getstatic(int type)
 
   if (lg > 0)
   {
-    maxdispl = (displ > maxdispl) ? displ : maxdispl;
+    if (displ > maxdispl) 
+      maxdispl = displ;
+    else
+      maxdispl = maxdispl;
+    // maxdispl = (displ > maxdispl) ? displ : maxdispl;
   }
   else
   {
@@ -262,7 +286,10 @@ int toidentab(int f, int type)
 
   if (f != 1 && pred >= curid)      // один и тот же идент м.б. переменной и меткой
   {
-    if (func_def == 3 ? 1 : identab[pred + 1] > 0 ? 1 : func_def == 1 ? 0 : 1)
+    if (func_def == 3 || 
+        func_def != 3 && identab[pred + 1] > 0 || 
+        func_def != 3 && identab[pred + 1] <= 0 && func_def != 1)
+    // if (func_def == 3 ? 1 : identab[pred + 1] > 0 ? 1 : func_def == 1 ? 0 : 1)
     {
       error(repeated_decl); // только определение функции может иметь 2 описания, т.е. иметь предописание
     }
@@ -326,9 +353,9 @@ int toidentab(int f, int type)
   return lastid;
 }
 
-void binop(int sp)
+void binop(int _sp)
 {
-  int opp = stackop[sp];
+  int opp = stackop[_sp];
   int rtype = stackoperands[sopnd--];
   int ltype = stackoperands[sopnd];
 
@@ -361,7 +388,7 @@ void binop(int sp)
   if (opp == LOGOR || opp == LOGAND)
   {
     totree(opp);
-    tree[stacklog[sp]] = tc++;
+    tree[stacklog[_sp]] = tc++;
   }
   else
   {
@@ -404,14 +431,21 @@ void toval()  // надо значение положить на стек, на�
   {
     if (anst == IDENT)
     {
-      tree[tc - 2] = is_float(ansttype) ? TIdenttovald : TIdenttoval;
+      if (is_float(ansttype))
+        tree[tc - 2] = TIdenttovald;
+      else
+        tree[tc - 2] = TIdenttoval;
     }
 
     if (!(is_array(ansttype) || is_pointer(ansttype)))
     {
       if (anst == ADDR)
       {
-        totree(is_float(ansttype) ? TAddrtovald : TAddrtoval);
+        if (is_float(ansttype))
+          totree(TAddrtovald);
+        else
+          totree(TAddrtoval);
+        //totree(is_float(ansttype) ? TIdenttovald : TIdenttoval);
       }
     }
     anst = VAL;
@@ -807,7 +841,11 @@ void primaryexpr()
       else if (func == _TMSGRECEIVE || func == _TGETNUM)      // getnum int()   msgreceive msg_info()
       {
         anst = VAL;
-        ansttype = stackoperands[++sopnd] = func == _TGETNUM ? LINT : 2;
+        if (func == _TGETNUM)
+          ansttype = stackoperands[++sopnd] = LINT;
+        else
+          ansttype = stackoperands[++sopnd] = 2;
+        //ansttype = stackoperands[++sopnd] = func == _TGETNUM ? LINT : 2;
           // 2 - это ссылка на msg_info
           // не было параметра, выдали 1 результат
       }
@@ -1218,7 +1256,6 @@ void postexpr()
       totree(elem_type);
       exprval();
       index_check();              // проверка, что индекс int или char
-
       mustbe(RIGHTSQBR, no_rightsqbr_in_slice);
 
       stackoperands[--sopnd] = ansttype = elem_type;
@@ -1278,7 +1315,13 @@ void postexpr()
       }
       else if (anst == IDENT)
       {
-        int globid = anstdispl < 0 ? -1 : 1;
+        int globid;
+        if (anstdispl < 0)
+          globid = -1;
+        else
+          globid = 1;
+        
+        //int globid = anstdispl < 0 ? -1 : 1;
 
         while (next == DOT)
         {
@@ -1310,7 +1353,11 @@ void postexpr()
       error(unassignable_inc);
     }
 
-    opp = (next == INC) ? POSTINC : POSTDEC;
+    if (next == INC) 
+      opp = POSTINC;
+    else
+      opp = POSTDEC;
+    //opp = (next == INC) ? POSTINC : POSTDEC;
     if (anst == ADDR)
     {
       opp += 4;
@@ -1415,7 +1462,6 @@ void unarexpr()
   {
     primaryexpr();
   }
-
   postexpr();
   stackoperands[sopnd] = ansttype;
 }
@@ -1438,43 +1484,81 @@ void exprassninbrkts(int er)
 
 int prio(int opp)  // возвращает 0, если не операция
 {
-  return opp == LOGOR
-        ? 1
-        : opp == LOGAND
-          ? 2
-          : opp == LOR
-            ? 3
-            : opp == LEXOR
-              ? 4
-              : opp == LAND
-                ? 5
-                : opp == EQEQ
-                  ? 6
-                  : opp == NOTEQ
-                    ? 6
-                    : opp == LLT
-                      ? 7
-                      : opp == LGT
-                        ? 7
-                        : opp == LLE
-                          ? 7
-                          : opp == LGE
-                            ? 7
-                            : opp == LSHL
-                              ? 8
-                              : opp == LSHR
-                                ? 8
-                                : opp == LPLUS
-                                  ? 9
-                                  : opp == LMINUS
-                                    ? 9
-                                    : opp == LMULT
-                                      ? 10
-                                      : opp == LDIV
-                                        ? 10
-                                        : opp == LREM
-                                          ? 10
-                                          : 0;
+  if (opp == LOGOR)
+    return 1;
+  else if (opp == LOGAND)
+    return 2;
+  else if (opp == LOR)
+    return 3;
+  else if (opp == LEXOR)
+    return 4;
+  else if (opp == LAND)
+    return 5;
+  else if (opp == EQEQ)
+    return 6;
+  else if (opp == NOTEQ)
+    return 6;
+  else if (opp == LLT)
+    return 7;
+  else if (opp == LGT)
+    return 7;
+  else if (opp == LLE)
+    return 7;
+  else if (opp == LGE)
+    return 7;
+  else if (opp == LSHL)
+    return 8;
+  else if (opp == LSHR)
+    return 8;
+  else if (opp == LPLUS)
+    return 9;
+  else if (opp == LMINUS)
+    return 9;
+  else if (opp == LMULT)
+    return 10;
+  else if (opp == LDIV)
+    return 10;
+  else if (opp == LREM)
+    return 10;
+  else 
+    return 0;
+  // return opp == LOGOR
+  //       ? 1
+  //       : opp == LOGAND
+  //         ? 2
+  //         : opp == LOR
+  //           ? 3
+  //           : opp == LEXOR
+  //             ? 4
+  //             : opp == LAND
+  //               ? 5
+  //               : opp == EQEQ
+  //                 ? 6
+  //                 : opp == NOTEQ
+  //                   ? 6
+  //                   : opp == LLT
+  //                     ? 7
+  //                     : opp == LGT
+  //                       ? 7
+  //                       : opp == LLE
+  //                         ? 7
+  //                         : opp == LGE
+  //                           ? 7
+  //                           : opp == LSHL
+  //                             ? 8
+  //                             : opp == LSHR
+  //                               ? 8
+  //                               : opp == LPLUS
+  //                                 ? 9
+  //                                 : opp == LMINUS
+  //                                   ? 9
+  //                                   : opp == LMULT
+  //                                     ? 10
+  //                                     : opp == LDIV
+  //                                       ? 10
+  //                                       : opp == LREM
+  //                                         ? 10
+  //                                         : 0;
 }
 
 void subexpr()
@@ -1496,7 +1580,11 @@ void subexpr()
 
     if (p <= 2)
     {
-      totree(p == 1 ? ADLOGOR : ADLOGAND);
+      if (p == 1)
+        totree(ADLOGOR);
+      else
+        totree(ADLOGAND);
+      //totree(p == 1 ? ADLOGOR : ADLOGAND);
       ad = tc++;
     }
 
@@ -1515,13 +1603,14 @@ void subexpr()
 
   while (sp > oldsp)
   {
+    //sp = sp - 1;
     binop(--sp);
   }
 }
 
-int intopassn(int next)
+int intopassn(int next2)
 {
-  return next == REMASS || next == SHLASS || next == SHRASS || next == ANDASS || next == EXORASS || next == ORASS;
+  return next2 == REMASS || next2 == SHLASS || next2 == SHRASS || next2 == ANDASS || next2 == EXORASS || next2 == ORASS;
 }
 
 int opassn()
@@ -1601,7 +1690,12 @@ void condexpr()
     {
       r = tree[adif];
       tree[adif] = TExprend;
-      tree[adif - 1] = is_float(globtype) ? WIDEN : NOP;
+      if (is_float(globtype))
+        tree[adif - 1] = WIDEN;
+      else
+        tree[adif - 1] = NOP;
+
+      //tree[adif - 1] = is_float(globtype) ? WIDEN : NOP;
       adif = r;
     }
 
@@ -1696,8 +1790,15 @@ void struct_init(int decl_type) // сейчас modetab[decl_type] равен MS
 
 void exprassnvoid()
 {
-  int t = tree[tc - 2] < 9000 ? tc - 3 : tc - 2;
-  int tt = tree[t];
+  int t;
+  int tt;
+
+  if (tree[tc - 2] < 9000)
+    t = tc - 3; 
+  else
+    t = tc - 2;
+  //int t = tree[tc - 2] < 9000 ? tc - 3 : tc - 2;
+  tt = tree[t];
 
   if ((tt >= ASS && tt <= DIVASSAT) || (tt >= POSTINC && tt <= DECAT) || (tt >= ASSR && tt <= DIVASSATR) ||
     (tt >= POSTINCR && tt <= DECATR))
@@ -1785,11 +1886,28 @@ void exprassn(int level)
 
       if (anst == VAL)
       {
-        opp = leftanst == IDENT ? COPY0STASS : COPY1STASS;
+        if (leftanst == IDENT)
+          opp = COPY0STASS;
+        else 
+          opp = COPY1STASS;
+        //opp = leftanst == IDENT ? COPY0STASS : COPY1STASS;
       }
       else
       {
-        opp = leftanst == IDENT ? anst == IDENT ? COPY00 : COPY01 : anst == IDENT ? COPY10 : COPY11;
+        if (leftanst == IDENT)
+        {
+          if (anst == IDENT)
+            opp = COPY00;
+          else
+            opp = COPY01;
+        }
+        else {
+          if (anst == IDENT)
+            opp = COPY10;
+          else
+            opp = COPY11;
+        }
+        //opp = leftanst == IDENT ? anst == IDENT ? COPY00 : COPY01 : anst == IDENT ? COPY10 : COPY11;
       }
       totree(opp);
 
@@ -2034,7 +2152,11 @@ void decl_id(int decl_type)
   totree(elem_type);                        // elem_type
   totree(arrdim);                         // N
   tree[all = tc++] = 0;                     // all
-  tree[tc++] = is_pointer(decl_type) ? 0 : was_struct_with_arr; // proc
+  if (is_pointer(decl_type))
+    tree[tc++] = 0; // proc
+  else
+    tree[tc++] = was_struct_with_arr; // proc
+  // tree[tc++] = is_pointer(decl_type) ? 0 : was_struct_with_arr; // proc
   totree(usual);                          // usual
   totree(0);                            // массив не в структуре
 
@@ -2158,6 +2280,7 @@ void statement()
         break;
       case _PRINTID:
       {
+        int _foo1 = 1;
         mustbe(LEFTBR, no_leftbr_in_printid);
         do
         {       
@@ -2171,7 +2294,13 @@ void statement()
 
           totree(TPrintid);
           totree(lastid);
-        } while (next == COMMA ? scaner(), 1 : 0);
+
+          if (next == COMMA)
+            scaner();
+          else
+            _foo1 = 0;
+        } while (_foo1);
+        //} while (next == COMMA ? scaner(), 1 : 0);
         mustbe(RIGHTBR, no_rightbr_in_printid);
       }
         break;
@@ -2253,6 +2382,7 @@ void statement()
 
       case _GETID:
       {
+        int _foo2 = 1;
         mustbe(LEFTBR, no_leftbr_in_printid);
         do
         {
@@ -2266,7 +2396,14 @@ void statement()
 
           totree(TGetid);
           totree(lastid);
-        } while (next == COMMA ? scaner(), 1 : 0);
+
+          if (next == COMMA)
+            scaner();
+          else
+            _foo2 = 0;
+
+        } while (_foo2);
+        //} while (next == COMMA ? scaner(), 1 : 0);
         mustbe(RIGHTBR, no_rightbr_in_printid);
       }
         break;
@@ -2565,7 +2702,11 @@ int idorpnt(int e, int t)
   if (next == LMULT)
   {
     scaner();
-    t = t == LVOID ? LVOIDASTER : newdecl(MPOINT, t);
+    if (t == LVOID)
+      t = LVOIDASTER;
+    else
+      t = newdecl(MPOINT, t);
+    //t = t == LVOID ? LVOIDASTER : newdecl(MPOINT, t);
   }
 
   mustbe(IDENT, e);
@@ -2695,7 +2836,13 @@ int gettype()
   was_struct_with_arr = 0;
   if (is_int(type = cur) || is_float(type) || type == LVOID)
   {
-    return (cur == LLONG ? LINT : cur == LDOUBLE ? LFLOAT : type);
+    if (cur == LLONG)
+      return LINT;
+    else if (cur == LDOUBLE)
+      return LFLOAT;
+    else
+      return type;
+    //return (cur == LLONG ? LINT : cur == LDOUBLE ? LFLOAT : type);
   }
   else if (type == LSTRUCT)
   {
@@ -2818,7 +2965,8 @@ void block(int b)
 
   do
   {
-    if (b == 2 ? next == _TEXIT : next == END)
+    if (b == 2 && next == _TEXIT || b != 2 && next == END)
+    //if (b == 2 ? next == _TEXIT : next == END)
     {
       scaner();
       notended = 0;
@@ -2934,7 +3082,7 @@ void function_definition()
   displ = olddispl;
 }
 
-int func_declarator(int level, int func_d, int firstdecl)
+int func_declarator(int level, int func_d, int _firstdecl)
 {
   // на 1 уровне это может быть определением функции или предописанием, на остальных уровнях
   // - только декларатором (без идентов)
@@ -2950,7 +3098,7 @@ int func_declarator(int level, int func_d, int firstdecl)
   int old;
 
   loc_modetab[0] = MFUNCTION;
-  loc_modetab[1] = firstdecl;
+  loc_modetab[1] = _firstdecl;
   loc_modetab[2] = 0;
   locmd = 3;
 
@@ -2974,7 +3122,11 @@ int func_declarator(int level, int func_d, int firstdecl)
       {
         maybe_fun = 1;
         scaner();
-        type = type == LVOID ? LVOIDASTER : newdecl(MPOINT, type);
+        if (type == LVOID)
+          type = LVOIDASTER;
+        else 
+          type = newdecl(MPOINT, type);
+        //type = type == LVOID ? LVOIDASTER : newdecl(MPOINT, type);
       }
 
       if (level)
@@ -3072,7 +3224,11 @@ int func_declarator(int level, int func_d, int firstdecl)
 
       if (func_d == 3)
       {
-        func_d = ident > 0 ? 1 : 2;
+        if (ident > 0)
+          func_d = 1;
+        else
+          func_d = 2;
+        //func_d = ident > 0 ? 1 : 2;
       }
       else if (func_d == 2 && ident > 0)
       {
@@ -3172,7 +3328,11 @@ void ext_decl()
       if (next == LMULT)
       {
         scaner();
-        type = firstdecl == LVOID ? LVOIDASTER : newdecl(MPOINT, firstdecl);
+        if (firstdecl == LVOID)
+          type = LVOIDASTER;
+        else
+          newdecl(MPOINT, firstdecl);
+        //type = firstdecl == LVOID ? LVOIDASTER : newdecl(MPOINT, firstdecl);
       }
       mustbe(IDENT, after_type_must_be_ident);
 

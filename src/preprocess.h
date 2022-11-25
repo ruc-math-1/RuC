@@ -102,7 +102,7 @@ void show_macro()
     }
   }
 
-  printf("line %i) ", m_conect_lines[line]);
+  printf("\t %i) \t", m_conect_lines[line]);
 
   for (k = 0; k < j; k++)
   {
@@ -160,7 +160,7 @@ void mend_line()	// обработка символов
 
     if (kw && includeDepth == 0)
     {
-      printf("Line %i) ", mline - 1 - includedLines);
+      printf("\t %i) \t", mline - 1 - includedLines);
 
       for (j = mlines[mline - 1]; j < mlines[mline]; j++)
       {
@@ -369,7 +369,14 @@ int macro_keywords()	// define
       if (equal(r, oldrepr))
       {
         rp = oldrepr;
-        return (reprtab[r + 1] < 0) ? reprtab[r + 1] : (repr = r, IDENT);
+        if(reprtab[r + 1] < 0)
+          return reprtab[r + 1];
+        else {
+          repr = r;
+          return IDENT;
+        }
+
+        //return (reprtab[r + 1] < 0) ? reprtab[r + 1] : (repr = r, IDENT);
       }
       else
       {

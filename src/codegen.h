@@ -108,46 +108,57 @@ int Expr_gen(int incond)
   int flagprim = 1;
   int eltype;
   int wasstring = 0;
+  printf("here-expr-0\n");
 
   while (flagprim)
   {
+  printf("here-expr-1\n");
     switch (tree[tc++])
     {
       case TIdent:
+        printf("here-expr-2\n");
         anstdispl = tree[tc++];
         break;
       case TIdenttoaddr:
       {
+        printf("here-expr-3\n");
         tocode(LA);
         tocode(anstdispl = tree[tc++]);
       }
         break;
       case TIdenttoval:
       {
+        printf("here-expr-4\n");
         tocode(LOAD);
         tocode(tree[tc++]);
       }
         break;
       case TIdenttovald:
       {
+        printf("here-expr-5\n");
         tocode(LOADD);
         tocode(tree[tc++]);
       }
         break;
       case TAddrtoval:
+        printf("here-expr-6\n");
         tocode(LAT);
+        printf("here-expr-6out\n");
         break;
       case TAddrtovald:
+        printf("here-expr-7\n");
         tocode(LATD);
         break;
       case TConst:
       {
+        printf("here-expr-8\n");
         tocode(LI);
         tocode(tree[tc++]);
       }
         break;
       case TConstd:
       {
+        printf("here-expr-9\n");
         tocode(LID);
         tocode(tree[tc++]);
         tocode(tree[tc++]);
@@ -158,6 +169,7 @@ int Expr_gen(int incond)
         int n = tree[tc++];
         int res;
         int i;
+        printf("here-expr-10\n");
 
         tocode(LI);
         tocode(res = pc + 4);
@@ -175,19 +187,24 @@ int Expr_gen(int incond)
       }
         break;
       case TDeclid:
+        printf("here-expr-41\n");
         Declid_gen();
+        printf("here-expr-41out\n");
         break;
       case TBeginit:
       {
         int n = tree[tc++];
         int i;
+        printf("here-expr-11\n");
 
         tocode(BEGINIT);
         tocode(n);
 
         for (i = 0; i < n; i++)
         {
+        printf("here-expr-11-inner\n");
           Expr_gen(0);
+        printf("here-expr-11-out\n");
         }
       }
         break;
@@ -195,9 +212,12 @@ int Expr_gen(int incond)
       {
         int n = tree[tc++];
         int i;
+        printf("here-expr-12\n");
         for (i = 0; i < n; i++)
         {
+        printf("here-expr-12-inner\n");
           Expr_gen(0);
+        printf("here-expr-12_outer\n");
         }
       }
         break;
@@ -205,11 +225,13 @@ int Expr_gen(int incond)
       {
         tocode(LOAD);		// параметры - смещение идента и тип элемента
         tocode(tree[tc++]);	// продолжение в след case
-      }
-      case TSlice:			// параметр - тип элемента
-      {
+        printf("here-expr-13\n");
+
         eltype = tree[tc++];
+
+        printf("here-expr-13-inner\n");
         Expr_gen(0);
+        printf("here-expr-13-outer\n");
 
         tocode(SLICE);
         tocode(szof(eltype));
@@ -220,14 +242,34 @@ int Expr_gen(int incond)
         }
       }
         break;
+      case TSlice:			// параметр - тип элемента
+      {
+        printf("here-expr-21\n");
+        eltype = tree[tc++];
+        printf("here-expr-21-inner\n");
+        Expr_gen(0);
+        printf("here-expr-21-outer\n");
+
+        tocode(SLICE);
+        tocode(szof(eltype));
+
+        if (eltype > 0 && modetab[eltype] == MARRAY)
+        {
+          tocode(LAT);
+        }
+        printf("here-expr-21out\n");
+      }
+        break;
       case TSelect:
       {
+        printf("here-expr-15\n");
         tocode(SELECT);		// SELECT field_displ
         tocode(tree[tc++]);
       }
         break;
       case TPrint:
       {
+        printf("here-expr-16\n");
         tocode(_PRINT);
         tocode(tree[tc++]);	// type
       }
@@ -236,17 +278,21 @@ int Expr_gen(int incond)
       {
         int i;
         int n = tree[tc++];
+        printf("here-expr-17\n");
 
         tocode(CALL1);
 
         for (i = 0; i < n; i++)
         {
+        printf("here-expr-17-inner\n");
           Expr_gen(0);
+        printf("here-expr-17-inner\n");
         }
       }
         break;
       case TCall2:
       {
+        printf("here-expr-18\n");
         tocode(CALL2);
         tocode(identab[tree[tc++] + 3]);
       }
@@ -256,7 +302,9 @@ int Expr_gen(int incond)
         tc--;
     }
 
+    printf("here-expr-31\n");
     finalop();
+    printf("here-expr-32\n");
 
     if (tree[tc] == TCondexpr)
     {
@@ -298,6 +346,7 @@ int Expr_gen(int incond)
       flagprim = 0;
     }
   }
+  printf("here-expr-33\n");
 
   return wasstring;
 }
@@ -449,18 +498,28 @@ void Stmt_gen()
     {
       int id1 = tree[tc++];
       int a;
-      int _id = id1 > 0 ? id1 : -id1;
+      int _id;
+
+      if (_id > 0)
+        _id = id1;
+      else
+        _id = -id1;
+      //int _id = id1 > 0 ? id1 : -id1;
 
       tocode(B);
 
-      if ((a = identab[id + 3]) > 0)	// метка уже описана
+      if ((a = identab[_id + 3]) > 0)	// метка уже описана
       {
         tocode(a);
       }
       else							// метка еще не описана
       {
         identab[_id + 3] = -pc;
-        tocode(id1 < 0 ? 0 : a);	// первый раз встретился переход на еще не описанную метку или нет
+        if (id1 < 0)
+          tocode(0);	// первый раз встретился переход на еще не описанную метку или нет
+        else
+          tocode(a);
+        // tocode(id1 < 0 ? 0 : a);  // первый раз встретился переход на еще не описанную метку или нет
       }
     }
       break;
@@ -488,8 +547,11 @@ void Stmt_gen()
 
       adbreak = 0;
       adcase = 0;
+      printf("here-stmt-3\n");
       Expr_gen(0);
+      printf("here-stmt-4\n");
       Stmt_gen();
+      printf("here-stmt-5\n");
 
       if (adcase > 0)
       {
@@ -499,10 +561,12 @@ void Stmt_gen()
       adcase = oldcase;
       adbreakend();
       adbreak = oldbreak;
+      printf("here-3out\n");
     }
       break;
     case TCase:
     {
+      printf("here-2\n");
       if (adcase)
       {
         mem[adcase] = pc;
@@ -514,6 +578,7 @@ void Stmt_gen()
       tocode(BE0);
       adcase = pc++;
       Stmt_gen();
+      printf("here-out\n");
     }
       break;
     case TDefault:
@@ -675,6 +740,7 @@ void Declid_gen()
 
 void compstmt_gen()
 {
+  printf("here1\n");
   while (tree[tc] != TEnd)
   {
     switch (tree[tc])
@@ -702,7 +768,9 @@ void compstmt_gen()
         break;
 
       default:
+      {
         Stmt_gen();
+      }
     }
   }
   tc++;
@@ -722,13 +790,13 @@ void codegen()
       case TFuncdef:
       {
         int identref = tree[tc++];
-        int maxdispl = tree[tc++];
+        int _maxdispl = tree[tc++];
         int fn = identab[identref + 3];
         int pred;
 
         functions[fn] = pc;
         tocode(FUNCBEG);
-        tocode(maxdispl);
+        tocode(_maxdispl);
         pred = pc++;
         tc++;	// TBegin
         compstmt_gen();

@@ -519,17 +519,23 @@ void error(int ernum)
       switch (bad_printf_placeholder)
       {
         case 'i':
+          printf(" ожидает целое число\n");
+          break;
         case 1094:  // 'ц'
           printf(" ожидает целое число\n");
           break;
 
         case 'c':
           printf(" (англ.)");
+          printf(" ожидает литеру\n");
+          break;
         case 1083:  // л
           printf(" ожидает литеру\n");
           break;
 
         case 'f':
+          printf(" ожидает вещественное число\n");
+          break;
         case 1074:  // в
           printf(" ожидает вещественное число\n");
           break;

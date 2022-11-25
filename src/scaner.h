@@ -67,7 +67,7 @@ void endofline()
     {
         int j;
 
-        printf("line %i) ", line - 1);
+        printf("\t %i) \t", line - 1);
 
         for (j = lines[line - 1]; j < lines[line]; j++)
         {
@@ -785,7 +785,13 @@ int scan()
             if (equal(r, oldrepr))
             {
               rp = oldrepr;
-              return (reprtab[r + 1] < 0) ? reprtab[r + 1] : (repr = r, IDENT);
+              if (reprtab[r + 1] < 0)
+                return reprtab[r + 1];
+              else {
+                repr = r;
+                return IDENT;
+              }
+              //return (reprtab[r + 1] < 0) ? reprtab[r + 1] : (repr = r, IDENT);
             }
             else
             {
@@ -796,7 +802,11 @@ int scan()
 
         reprtab[oldrepr] = hashtab[hash];
         repr = hashtab[hash] = oldrepr;
-        reprtab[repr + 1] = (keywordsnum) ? -((++keywordsnum - 2) / 4) : 1;
+        if (keywordsnum)
+          reprtab[repr + 1] = -((++keywordsnum - 2) / 4);
+        else
+          reprtab[repr + 1] = 1;
+        //reprtab[repr + 1] = (keywordsnum) ? -((++keywordsnum - 2) / 4) : 1;
           // == 0 - только MAIN,
           // <  0 - ключевые слова,
           // == 1 - обычные иденты
@@ -805,7 +815,7 @@ int scan()
       }
       else
       {
-        printf("плохой символ %i ", curchar);
+        
         printf_char(curchar);
         printf("\n");
         nextch();
@@ -827,7 +837,7 @@ int scaner()
 		}
 	*/
 
-  printf("Сканер обнаружил символ %i\n", cur);
+  printf("RuC: Сканер обнаружил символ %i\n", cur);
 	return cur;
 }
 

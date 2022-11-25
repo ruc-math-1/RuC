@@ -105,9 +105,11 @@ void main()
   charnum = 1;
   kw = 1;
   tc = 0;
+  printf("RuC: Completed preparation.\n");
 
   printf("\nИсходный текст:\n \n");
   preprocess_file(); // макрогенерация
+  printf("RuC: Completed preprocessing.\n");
 
   fclose(output);
   fclose(input);
@@ -135,11 +137,16 @@ void main()
   lines[line + 1] = charnum;
   tablesandtree();
   fclose(output);
+  printf("RuC: written tree.\n");
+
   output = fopen("codes.txt", "wt");
 
   codegen(); // генерация кода
+  printf("RuC: finished codegen().\n");
 
   tablesandcode();
+  printf("RuC: finished tablesandcode().\n");
+  printf("RuC: written codes.txt.\n");
 
   fclose(input);
   fclose(output);
@@ -176,5 +183,6 @@ void main()
   }
   fprintf(output, "\n");
 
+  printf("RuC: written export.txt.\n");
   fclose(output);
 }
