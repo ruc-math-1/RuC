@@ -72,11 +72,11 @@ int check_duplicates()
   return startmode + 1;
 }
 
-int newdecl(int type, int elemtype)
+int newdecl(int _type, int elemtype)
 {
   modetab[md] = startmode;
   startmode = md++;
-  modetab[md++] = type;
+  modetab[md++] = _type;
   modetab[md++] = elemtype; // ссылка на элемент
 
   return check_duplicates();
@@ -160,14 +160,14 @@ int evaluate_params(int _num, int formatstr[], int formattypes[], int placeholde
   return numofparams;
 }
 
-int szof(int type)
+int szof(int _type)
 {
   if (next == LEFTSQBR)
     return 1;
-  else if (type == LFLOAT) 
+  else if (_type == LFLOAT) 
     return 2;
-  else if (type > 0 && modetab[type] == MSTRUCT)
-    return modetab[type + 1];
+  else if (_type > 0 && modetab[_type] == MSTRUCT)
+    return modetab[_type + 1];
   else
     return 1;
   //return next == LEFTSQBR ? 1 : type == LFLOAT ? 2 : (type > 0 && modetab[type] == MSTRUCT) ? modetab[type + 1] : 1;
@@ -233,10 +233,10 @@ void totreef(int opp)
   }
 }
 
-int getstatic(int type)
+int getstatic(int _type)
 {
   int olddispl = displ;
-  displ += lg * szof(type); // lg - смещение от l (+1) или от g (-1)
+  displ += lg * szof(_type); // lg - смещение от l (+1) или от g (-1)
 
   if (lg > 0)
   {
@@ -254,7 +254,7 @@ int getstatic(int type)
   return olddispl;
 }
 
-int toidentab(int f, int type)
+int toidentab(int f, int _type)
 {
   // f ==       0, если не ф-ция,
   // f ==       1, если метка,
@@ -299,11 +299,11 @@ int toidentab(int f, int type)
   if (f == -2)          // #define
   {
     identab[id + 2] = 1;
-    identab[id + 3] = type;   // это целое число, определенное по #define
+    identab[id + 3] = _type;   // это целое число, определенное по #define
   }
   else              // дальше тип или ссылка на modetab (для функций и структур)
   {
-    identab[id + 2] = type;   // тип -1 int, -2 char, -3 float, -4 long, -5 double,
+    identab[id + 2] = _type;   // тип -1 int, -2 char, -3 float, -4 long, -5 double,
                   // если тип > 0, то это ссылка на modetab
 
     if (f == 1)
@@ -2632,7 +2632,8 @@ void statement()
             }
 
             totree(TReturnval);
-            totree(szof(ftype));
+            szof_ftype = szof(ftype);
+            totree(szof_ftype);
             scaner();
             expr(1);
             toval();
