@@ -356,8 +356,22 @@ int toidentab(int f, int _type)
 void binop(int _sp)
 {
   int opp = stackop[_sp];
-  int rtype = stackoperands[sopnd--];
-  int ltype = stackoperands[sopnd];
+  int rtype;
+  int ltype;
+
+  if (sopnd >= 0) {
+    rtype = stackoperands[sopnd];
+  }
+  else {
+    rtype = stack[100+sopnd];
+  }
+  sopnd--;
+  if (sopnd >= 0) {
+    ltype = stackoperands[sopnd];
+  }
+  else {
+    ltype = stack[100+sopnd];
+  }
 
   if (is_pointer(ltype) || is_pointer(rtype))
   {
@@ -598,7 +612,13 @@ void primaryexpr()
       totree(num);    // LINT, LCHAR
     }
 
-    stackoperands[++sopnd] = ansttype;
+    ++sopnd;
+    if (sopnd >= 0) {
+      stackoperands[sopnd] = ansttype;
+    }
+    else {
+      stack[100+sopnd] = ansttype;
+    }
     // printf("number sopnd=%i ansttype=%i\n", sopnd, ansttype);
     anst = NUMBER;
   }
@@ -615,7 +635,13 @@ void primaryexpr()
       totree(lexstr[i]);
     }
 
-    stackoperands[++sopnd] = ansttype;  // ROWOFCHAR
+    ++sopnd;  // ROWOFCHAR
+    if (sopnd >= 0) {
+      stackoperands[sopnd] = ansttype;
+    }
+    else {
+      stack[100+sopnd] = ansttype;
+    }
     anst = VAL;
   }
   else if (cur == IDENT)
@@ -633,8 +659,16 @@ void primaryexpr()
     */
     {
       totree(TIdent);
-      totree(anstdispl = identab[lastid + 3]);
-      stackoperands[++sopnd] = ansttype = identab[lastid + 2];
+      anstdispl = identab[lastid + 3];
+      totree(anstdispl);
+      ansttype = identab[lastid + 2];
+      ++sopnd;
+      if (sopnd >= 0) {
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        stack[100+sopnd] = ansttype;
+      }
       anst = IDENT;
     }
   }
@@ -704,7 +738,14 @@ void primaryexpr()
 
       if (func < _STRNCAT)
       {
-        stackoperands[++sopnd] = ansttype = LINT;
+        ansttype = LINT;
+        ++sopnd;
+        if (sopnd >= 0) {
+          stackoperands[sopnd] = ansttype;
+        }
+        else {
+          stack[100+sopnd] = ansttype;
+        }
       }
     }
     else if (func >= _ICON && func <= _WIFI_CONNECT)  // функции Фадеева
@@ -824,7 +865,14 @@ void primaryexpr()
         }
         else
         {
-          stackoperands[++sopnd] = ansttype = LINT;
+          ansttype = LINT;
+          ++sopnd;
+          if (sopnd >= 0) {
+            stackoperands[sopnd] = ansttype;
+          }
+          else {
+            stack[100+sopnd] = ansttype;
+          }
         }
       }
     }
@@ -833,7 +881,14 @@ void primaryexpr()
       mustbeint();
       mustbe(COMMA, no_comma_in_act_params_stanfunc);
       mustberow();
-      stackoperands[++sopnd] = ansttype = LINT;
+      ansttype = LINT;
+      ++sopnd;
+      if (sopnd >= 0) {
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        stack[100+sopnd] = ansttype;
+      }
     }
     else if (func <= _TMSGSEND && func >= _TGETNUM) // процедуры управления параллельными нитями
     {
@@ -842,9 +897,27 @@ void primaryexpr()
       {
         anst = VAL;
         if (func == _TGETNUM)
-          ansttype = stackoperands[++sopnd] = LINT;
+        {
+          ansttype = LINT;
+          ++sopnd;
+          if (sopnd >= 0) {
+            stackoperands[sopnd] = ansttype;
+          }
+          else {
+            stack[100+sopnd] = ansttype;
+          }
+        }
         else
-          ansttype = stackoperands[++sopnd] = 2;
+        {
+          ansttype = 2;
+          ++sopnd;
+          if (sopnd >= 0) {
+            stackoperands[sopnd] = ansttype;
+          }
+          else {
+            stack[100+sopnd] = ansttype;
+          }
+        }
         //ansttype = stackoperands[++sopnd] = func == _TGETNUM ? LINT : 2;
           // 2 - это ссылка на msg_info
           // не было параметра, выдали 1 результат
@@ -870,7 +943,13 @@ void primaryexpr()
             error(wrong_arg_in_create);
           }
 
-          stackoperands[sopnd] = ansttype = LINT;
+          ansttype = LINT;
+          if (sopnd >= 0) {
+            stackoperands[sopnd] = ansttype;
+          }
+          else {
+            stack[100+sopnd] = ansttype;
+          }
           dn = identab[lastid + 3];
 
           if (dn < 0)
@@ -907,7 +986,14 @@ void primaryexpr()
             }
             if (func == _TSEMCREATE)
             {
-              anst = VAL, ansttype = stackoperands[sopnd] = LINT; // съели 1 параметр, выдали int
+              anst = VAL;
+              ansttype = LINT; // съели 1 параметр, выдали int
+              if (sopnd >= 0) {
+                stackoperands[sopnd] = ansttype;
+              }
+              else {
+                stack[100+sopnd] = ansttype;
+              }
             }
             else
             {
@@ -919,14 +1005,28 @@ void primaryexpr()
     }
     else if (func == _RAND)
     {
-      ansttype = stackoperands[++sopnd] = LFLOAT;
+      ansttype = LFLOAT;
+      ++sopnd;
+      if (sopnd >= 0) {
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        stack[100+sopnd] = ansttype;
+      }
     }
     else if (func == _FOPEN) // Функции работы с файлами
     {
       mustbestring();
       mustbe(COMMA, no_comma_in_act_params_stanfunc);
       mustbestring();
-      stackoperands[++sopnd] = ansttype = LINT;
+      ansttype = LINT;
+      ++sopnd;
+      if (sopnd >= 0) {
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        stack[100+sopnd] = ansttype;
+      }
     }
     else if (func == _FCLOSE)
     {
@@ -941,7 +1041,14 @@ void primaryexpr()
     else if (func == _FGETC)
     {
       mustbeint();
-      stackoperands[++sopnd] = ansttype = LCHAR;
+      ansttype = LCHAR;
+      ++sopnd;
+      if (sopnd >= 0) {
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        stack[100+sopnd] = ansttype;
+      }
     }
     else if (func == _PUTC)
     {
@@ -949,7 +1056,14 @@ void primaryexpr()
     }
     else if (func == _GETC) 
     {
-      stackoperands[++sopnd] = ansttype = LCHAR;
+      ansttype = LCHAR;
+      ++sopnd;
+      if (sopnd >= 0) {
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        stack[100+sopnd] = ansttype;
+      }
     }
     else
     {
@@ -1018,7 +1132,13 @@ void primaryexpr()
         if (is_int(ansttype))
         {
           totree(WIDEN);
-          ansttype = stackoperands[sopnd] = LFLOAT;
+          ansttype = LFLOAT;
+          if (sopnd >= 0) {
+            stackoperands[sopnd] = ansttype;
+          }
+          else {
+            stack[100+sopnd] = ansttype;
+          }
         }
 
         if (!is_float(ansttype))
@@ -1028,7 +1148,13 @@ void primaryexpr()
 
         if (func == _ROUND)
         {
-          ansttype = stackoperands[sopnd] = LINT;
+          ansttype = LINT;
+          if (sopnd >= 0) {
+            stackoperands[sopnd] = ansttype;
+          }
+          else {
+            stack[100+sopnd] = ansttype;
+          }
         }
       }
     }
@@ -1213,7 +1339,13 @@ void postexpr()
     mustbe(RIGHTBR, wrong_number_of_params);
     totree(TCall2);
     totree(lid);
-    stackoperands[sopnd] = ansttype = modetab[leftansttyp + 1];
+    ansttype = modetab[leftansttyp + 1];
+    if (sopnd >= 0) {
+      stackoperands[sopnd] = ansttype;
+    }
+    else {
+      stack[100+sopnd] = ansttype;
+    }
     anst = VAL;
 
     if (is_struct(ansttype))
@@ -1258,7 +1390,14 @@ void postexpr()
       index_check();              // проверка, что индекс int или char
       mustbe(RIGHTSQBR, no_rightsqbr_in_slice);
 
-      stackoperands[--sopnd] = ansttype = elem_type;
+      ansttype = elem_type;
+      --sopnd;
+      if (sopnd >= 0) {
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        stack[100+sopnd] = ansttype;
+      }
       anst = ADDR;
     }
 
@@ -1463,7 +1602,12 @@ void unarexpr()
     primaryexpr();
   }
   postexpr();
-  stackoperands[sopnd] = ansttype;
+  if (sopnd >= 0) {
+    stackoperands[sopnd] = ansttype;
+  }
+  else {
+    stack[100+sopnd] = ansttype;
+  }
 }
 
 void exprinbrkts(int er)
@@ -1698,12 +1842,22 @@ void condexpr()
       //tree[adif - 1] = is_float(globtype) ? WIDEN : NOP;
       adif = r;
     }
-
-    stackoperands[sopnd] = ansttype = globtype;
+    ansttype = globtype;
+    if (sopnd >= 0) {
+      stackoperands[sopnd] = ansttype;
+    }
+    else {
+      stack[100+sopnd] = ansttype;
+    }
   }
   else
   {
-    stackoperands[sopnd] = ansttype;
+    if (sopnd >= 0) {
+      stackoperands[sopnd] = ansttype;
+    }
+    else {
+      stack[100+sopnd] = ansttype;
+    }
   }
 }
 
@@ -1832,8 +1986,15 @@ void exprassn(int level)
     {
       error(init_not_struct);
     }
-
-    stackoperands[++sopnd] = ansttype = leftansttype;
+    
+    ansttype = leftansttype;
+    ++sopnd;
+    if (sopnd >= 0) {
+      stackoperands[sopnd] = ansttype;
+    }
+    else {
+      stack[100+sopnd] = ansttype;
+    }
     anst = VAL;
   }
   else
@@ -1859,8 +2020,19 @@ void exprassn(int level)
     {
       error(unassignable);
     }
-    rtype = stackoperands[sopnd--]; // снимаем типы операндов со стека
-    ltype = stackoperands[sopnd];
+    if (sopnd >= 0) {
+      rtype = stackoperands[sopnd];
+    }
+    else {
+      rtype = stack[100 + sopnd];
+    } // снимаем типы операндов со стека
+    sopnd--;
+    if (sopnd >= 0) {
+      ltype = stackoperands[sopnd];
+    }
+    else {
+      ltype = stack[100 + sopnd];
+    } 
 
     if (intopassn(lnext) && (is_float(ltype) || is_float(rtype)))
     {
@@ -1960,7 +2132,13 @@ void exprassn(int level)
       }
       anst = VAL;
     }
-    stackoperands[sopnd] = ansttype = ltype;  // тип результата - на стек
+    ansttype = ltype; // тип результата - на стек
+    if (sopnd >= 0) {
+      stackoperands[sopnd] = ansttype;
+    }
+    else {
+      stack[100+sopnd] = ansttype;
+    }
   }
   else
   {
