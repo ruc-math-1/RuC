@@ -2804,6 +2804,7 @@ void statement()
           }
           else
           {
+            int szof_ftype = 0;
             if (ftype == LVOID)
             {
               error(notvoidret_in_void_func);
