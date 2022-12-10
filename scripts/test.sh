@@ -72,10 +72,6 @@ main()
 	build
 	test
 
-	echo $test_dir
-	p=`pwd`
-	echo $p
-
 	if [[ fail != 0 || timeout != 0 ]] ; then
 		exit 1
 	fi
