@@ -2,54 +2,55 @@
 
 init()
 {
-	full_out=$1
+	legacy_compiler=$1
+	ruc_vm=$2
+	test_dir=./tests 
 
-	output_time=0.1
 	wait_for=1
 
 	pass=0
 	fail=0
 	timeout=0
+
+	ulimit -s 81920
 }
 
 build()
 {
-	cd `dirname $0`/..
-	mkdir -p build && cd build && cmake ..
-	if ! cmake --build . --config Release ; then
-		exit 1
+	if [[ $legacy_compiler = "--build" ]] ; then
+		sh ./scripts/build_legacy.sh
+		legacy_compiler=../compiler/ruc
+		ruc_vm=./vm/ruc-vm
 	fi
 
-	ruc_compiler=./ruc
-	test_dir=../tests
+	cd src
+	`$legacy_compiler main.ruc>/dev/null 2>/dev/null`
+	if ! [[ $? -eq 0 ]]; then
+		exit 21
+	fi
+	cd ..
 }
 
 test()
 {
-	for code in ${test_dir}/*.c ${test_dir}/*/*.c ${test_dir}/*/*/*.c
+	cd $test_dir
+	cp ../src/keywords.txt keywords.txt
+	for code in ./*.c
 	do
-		out=`timeout $wait_for ${ruc_compiler} $code >/dev/null 2>/dev/null`
+		cp $code main.ruc
+		out=`timeout $wait_for $ruc_vm ../src/export.txt >$code.out 2>$code.out`
 
 		case $? in
 			0)
-				if ! [[ -z $full_out ]] ; then
-					sleep $output_time
-					echo -e "\x1B[1;32m build passing \x1B[1;39m: $code"
-				fi
+				echo -e "\x1B[1;32m build passing \x1B[1;39m: $code"
 				let pass++
 				;;
 			124)
-				if ! [[ -z $full_out ]] ; then
-					sleep $output_time
-					echo -e "\x1B[1;34m build timeout \x1B[1;39m: $code"
-				fi
+				echo -e "\x1B[1;34m build timeout \x1B[1;39m: $code"
 				let timeout++
 				;;
 			*)
-				if ! [[ -z $full_out ]] ; then
-					sleep $output_time
-					echo -e "\x1B[1;31m build failing \x1B[1;39m: $code"
-				fi
+				echo -e "\x1B[1;31m build failing \x1B[1;39m: $code"
 				let fail++
 				;;
 		esac
@@ -65,22 +66,21 @@ test()
 
 main()
 {
+	cd `dirname $0`/..
 	init $@
 
 	build
 	test
 
-	if ! [ $pass -eq 0 ] ; then
-		exit 0
+	echo $test_dir
+	p=`pwd`
+	echo $p
+
+	if [[ fail != 0 || timeout != 0 ]] ; then
+		exit 1
 	fi
 
-	if ! [ $fail -ge 0 ] ; then
-		if ! [ $timeout -ge 0 ] ; then
-			exit 0
-		fi
-	fi
-
-	exit 1
+	exit 0
 }
 
 main $@
