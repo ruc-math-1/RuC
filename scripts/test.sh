@@ -18,6 +18,7 @@ init()
 build()
 {
 	if [[ $legacy_compiler = "--build" ]] ; then
+		git fetch origin legacy:legacy
 		sh ./scripts/build_legacy.sh
 		legacy_compiler=../compiler/ruc
 		ruc_vm=../vm/ruc-vm
