@@ -1440,6 +1440,7 @@ void postexpr()
       if (anst == VAL)  // структура - значение функции
       {
         int len1 = szof(ansttype);
+        int sz = 0;
 
         anstdispl = 0;
         while (next == DOT)
@@ -1449,8 +1450,11 @@ void postexpr()
 
         totree(COPYST);
         totree(anstdispl);
-        totree(szof(ansttype));
+        //sz = szof(ansttype);
         totree(len1);
+        //totree(szof(ansttype));
+        // PROBABLY AN ERROR - NOT YET SURE.
+        // totree(len1);
       }
       else if (anst == IDENT)
       {
