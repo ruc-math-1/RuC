@@ -20,7 +20,7 @@ build()
 	if [[ $legacy_compiler = "--build" ]] ; then
 		sh ./scripts/build_legacy.sh
 		legacy_compiler=../compiler/ruc
-		ruc_vm=./vm/ruc-vm
+		ruc_vm=../vm/ruc-vm
 	fi
 
 	cd src
