@@ -10,7 +10,7 @@ build_compiler()
 build_vm()
 {
     cd vm
-    git checkout legacy
+    git checkout feature-temp
     cmake .
     cmake --build . --config Release
     cd ..
