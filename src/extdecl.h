@@ -414,7 +414,12 @@ void binop(int _sp)
     ansttype = LINT;
   }
 
-  stackoperands[sopnd] = ansttype;
+  if (sopnd >= 0) {
+    stackoperands[sopnd] = ansttype;
+  }
+  else {
+    stack[100+sopnd] = ansttype;
+  }
   // printf("binop sopnd=%i ltype=%i rtype=%i ansttype=%i\n", sopnd, ltype, rtype, ansttype);
   anst = VAL;
 }
@@ -1562,7 +1567,13 @@ void unarexpr()
           tree[tc - 2] = TIdenttoaddr;  // &a
         }
 
-        stackoperands[sopnd] = ansttype = newdecl(MPOINT, ansttype);
+        ansttype = newdecl(MPOINT, ansttype);
+        if (sopnd >= 0) {
+          stackoperands[sopnd] = ansttype;
+        }
+        else {
+          stack[100+sopnd] = ansttype;
+        }
         anst = VAL;
       }
       else if (opp == LMULT)
@@ -2419,7 +2430,8 @@ void statement()
 
     if (flag)
     {
-      totree(_id = toidentab(1, 0));
+      _id = toidentab(1, 0);
+      totree(_id);
       gotost[pgotost++] = id;     // это определение метки, если она встретилась до переходов на нее
       gotost[pgotost++] = -line;
     }
@@ -2744,7 +2756,8 @@ void statement()
         {
           // первый раз встретился переход на метку, которой не было, в этом случае
           // ссылка на identtab, стоящая после TGoto, будет отрицательной
-          totree(-toidentab(1, 0));
+          int __tmp = -toidentab(1, 0);
+          totree(__tmp);
           gotost[pgotost++] = lastid;
         }
         else
@@ -2921,7 +2934,9 @@ int struct_decl_list()
   {
     int fieldrepr;
 
-    t = elem_type = idorpnt(wait_ident_after_semicomma_in_struct, gettype());
+    int __type = gettype();
+
+    t = elem_type = idorpnt(wait_ident_after_semicomma_in_struct, __type);
     fieldrepr = repr;
 
     if (next == LEFTSQBR)

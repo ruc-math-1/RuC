@@ -678,8 +678,10 @@ void Declid_gen()
   }
   else	// Обработка массива int a[N1]...[NN] =
   {
+    int __abs_N;
     tocode(DEFARR);	// DEFARR N, d, displ, iniproc, usual		N1...NN уже лежат на стеке
-    tocode(all == 0 ? N : abs(N) - 1);
+    __abs_N = abs(N);
+    tocode(all == 0 ? N : __abs_N - 1);
     tocode(element_len);
     tocode(olddispl);
     tocode(iniprocs[iniproc]);
@@ -691,7 +693,7 @@ void Declid_gen()
     {
       Expr_gen(0);
       tocode(ARRINIT);	// ARRINIT N d all displ usual
-      tocode(abs(N));
+      tocode(__abs_N);
       tocode(element_len);
       tocode(olddispl);
       tocode(usual);	// == 0 с пустыми границами
