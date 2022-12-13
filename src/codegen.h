@@ -595,6 +595,12 @@ void Stmt_gen()
       tocode(tree[tc++]);	// общий размер того, что надо вывести
     }
       break;
+    case TFprintf:
+    {
+      tocode(_FPRINTF);
+      tocode(tree[tc++]); // общий размер того, что надо вывести
+    }
+      break;
     case TGetid:
     {
       tocode(_GETID);

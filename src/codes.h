@@ -6,7 +6,7 @@ void tablesandcode();
 void tablesandtree();
 
 
-#include "codes.h"
+//#include "codes.h"
 #include "stdio.h"
 #include "global.h"
 #include "utils.h"

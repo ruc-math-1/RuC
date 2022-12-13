@@ -579,6 +579,19 @@ void mustbeint()
   }
 }
 
+void mustbeptr()
+{
+  scaner();
+  exprassn(1);
+  toval();
+  sopnd--;
+ 
+  if (!(ansttype > 0 && modetab[ansttype] == MPOINT))
+  {
+    error(not_point_string_in_stanfunc);
+  }
+}
+
 void mustberowofint()
 {
   scaner();
@@ -894,6 +907,69 @@ void primaryexpr()
       else {
         stack[100+sopnd] = ansttype;
       }
+    }
+    else if (func == _FOPEN) // Функции работы с файлами
+    {
+      mustbestring();
+      mustbe(COMMA, no_comma_in_act_params_stanfunc);
+      mustbestring();
+      ++sopnd;
+      if (sopnd >= 0) {
+        ansttype = LINT;
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        ansttype = LCHAR;
+        stack[100+sopnd] = ansttype;
+      }
+      //stackoperands[++sopnd] = ansttype = LINT;
+    }
+    else if (func == _FCLOSE)
+    {
+      mustbeint();
+    }
+    else if (func == _FPUTC)
+    {
+      mustbeint();
+      mustbe(COMMA, no_comma_in_act_params_stanfunc);
+      mustbeint();
+    }
+    else if (func == _FGETC)
+    {
+      mustbeint();
+      ++sopnd;
+      if (sopnd >= 0) {
+        ansttype = LCHAR;
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        ansttype = LCHAR;
+        stack[100+sopnd] = ansttype;
+      }
+      //stackoperands[++sopnd] = ansttype = LCHAR;
+    }
+    else if (func == _PUTC)
+    {
+      mustbeint();
+    }
+    else if (func == _GETC) 
+    {
+      ++sopnd;
+      if (sopnd >= 0) {
+        ansttype = LCHAR;
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        ansttype = LCHAR;
+        stack[100+sopnd] = ansttype;
+      }
+      //stackoperands[++sopnd] = ansttype = LCHAR;
+    }
+    else if (func == _DTONUMR) 
+    {
+      mustbeptr();
+      mustbe(COMMA, no_comma_in_act_params_stanfunc);
+      mustbeptr();
     }
     else if (func <= _TMSGSEND && func >= _TGETNUM) // процедуры управления параллельными нитями
     {
@@ -2601,6 +2677,83 @@ void statement()
         mustbe(RIGHTBR, no_rightbr_in_printid);
       }
         break;
+      case _FPRINTF:
+      {
+        int formatstr[MAXSTRINGL];
+        int formattypes[MAXPRINTFPARAMS];
+        int placeholders[MAXPRINTFPARAMS];
+        int paramnum = 0;
+        int sumsize = 0;
+        int i = 0;
+        int fnum;
+
+        mustbe(LEFTBR, no_leftbr_in_printf);
+        mustbeint();
+        mustbe(COMMA, no_comma_in_act_params_stanfunc);
+
+        if (scaner() != STRING) //выкушиваем форматную строку
+        {
+          error(wrong_first_printf_param);
+        }
+
+        for (i = 0; i < num; i++)
+        {
+          formatstr[i] = lexstr[i];
+        }
+        formatstr[num] = 0;
+
+        paramnum = evaluate_params(fnum = num, formatstr, formattypes, placeholders);
+
+        for (i = 0; scaner() == COMMA; i++)
+        {
+          if (i >= paramnum)
+          {
+            error(wrong_printf_param_number);
+          }
+
+          scaner();
+
+          exprassn(1);
+          toval();
+          totree(TExprend);
+
+          if (formattypes[i] == LFLOAT && ansttype == LINT)
+          {
+            insertwiden();
+          }
+          else if (formattypes[i] != ansttype)
+          {
+            bad_printf_placeholder = placeholders[i];
+            error(wrong_printf_param_type);
+          }
+
+          sumsize += szof(formattypes[i]);
+          --sopnd;
+        }
+
+        if (cur != RIGHTBR)
+        {
+          error(no_rightbr_in_printf);
+        }
+ 
+        if (i != paramnum)
+        {
+          error(wrong_printf_param_number);
+        }
+
+        totree(TString);
+        totree(fnum);
+
+        for (i = 0; i < fnum; i++)
+        {
+          totree(formatstr[i]);
+        }
+        totree(TExprend);
+
+        totree(TFprintf);
+        totree(sumsize);
+      }
+        break;
       case LBREAK:
       {
         if (!(inloop || inswitch))
@@ -3523,6 +3676,7 @@ void ext_decl()
 
     do  // описываемые объекты через ',' определение функции может быть только одно, никаких ','
     {
+      int _ex = 0;
       type = firstdecl;
       if (next == LMULT)
       {
@@ -3570,7 +3724,7 @@ void ext_decl()
           }
 
           function_definition();
-          goto ex;
+          _ex = 1;
         }
         else
         {
@@ -3584,7 +3738,8 @@ void ext_decl()
       {
         error(only_functions_may_have_type_VOID);
       }
-
+      if (_ex)
+        break;
       // описания идентов-не-функций
 
       if (func_def == 3)
@@ -3608,7 +3763,6 @@ void ext_decl()
       }
     } while (repeat);
 
-    ex:;
   } while (next != LEOF);
 
   if (wasmain == 0)
@@ -3620,6 +3774,7 @@ void ext_decl()
   {
     if (predef[i])
     {
+      repr = predef[i];
       error(predef_but_notdef);
     }
   }
