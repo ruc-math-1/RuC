@@ -1,0 +1,9281 @@
+/*
+ *  Copyright 2022 Andrey Terekhov, Victor Y. Fadeev
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */ 
+
+
+
+
+
+void codegen();
+
+
+
+
+
+
+// modetab
+
+
+
+// Лексемы операций языка С
+
+
+
+
+// эти 22 операции с присваиванием оставляют значение на стеке
+
+
+
+
+
+// а эти 22 операции с присваиванием не оставляют значение на стеке
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Коды операций виртуальной машины, кроме операций C
+
+
+
+
+
+
+
+
+// d1, d2, l
+
+
+
+
+
+
+
+
+
+
+// Коды операций стандартных функций
+
+
+
+
+
+
+
+
+
+
+// Лексемы
+
+
+
+// Ответы
+
+
+
+// Ключевые слова
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Узлы дерева
+
+
+
+
+// Коды ошибок
+
+
+
+
+
+
+
+
+
+// коды предупреждений
+
+
+
+// коды команд MIPS
+
+
+// bltz rs, label   if rs < 0         bgez rs, label  if rs >= 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// sll rd, rt, shamt  rd = rt << shsmt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+struct {
+  int first;
+  int second;
+} numr;
+
+int input;
+int output;
+char source_file_path[300000];
+
+double numdouble;
+int line = 0;
+int mline = 0; 
+int charnum = 1; 
+int m_charnum = 1; 
+int cur;
+int next; 
+int next1; 
+int num; 
+int hash; 
+int repr; 
+int keywordsnum; 
+int wasstructdef = 0;
+
+int source[300000];
+int lines[10000];
+int before_source[300000];
+int mlines[10000];
+int m_conect_lines[10000];
+int nextchar; 
+int curchar;
+int func_def;
+int hashtab[256]; 
+int reprtab[3000000]; 
+int rp = 1;
+int identab[3000000];
+int id = 2;
+int modetab[3000000];
+int md = 1;
+int startmode = 1;
+
+int stack[100];
+int stackop[100];
+int stackoperands[100];
+int stacklog[100];
+int sp = 0;
+int sopnd = -1;
+int aux = 0;
+int lastid;
+int curid = 2;
+int lg = -1;
+int displ = -3;
+int maxdispl = 3;
+int maxdisplg = 3;
+int type;
+int op = 0;
+int inass = 0;
+int firstdecl;
+
+int iniprocs[300000];
+int procd = 1;
+int arrdim;
+int arrelemlen;
+int was_struct_with_arr;
+int usual;
+
+int instring = 0;
+int inswitch = 0;
+int inloop = 0;
+int lexstr[300000];
+int tree[30000000];
+int tc = 0;
+int mtree[30000000];
+int mtc = 0;
+int mem[5000000];
+int pc = 4;
+int functions[300000];
+int funcnum = 2;
+int functype;
+int kw = 0;
+int blockflag = 1;
+int entry;
+int wasmain = 0;
+int wasret;
+int wasdefault;
+int notrobot = 1;
+int prep_flag = 0;
+
+int adcont;
+int adbreak;
+int adcase;
+int adandor;
+int switchreg;
+int predef[300000];
+int prdf = -1;
+int emptyarrdef;
+
+int gotost[1000];
+int pgotost;
+
+int _row = 1;
+int _col = 0;
+
+/*
+ *  anst = VAL - значение на стеке
+ *  anst = ADDR - на стеке адрес значения
+ *  anst = NUMBER - ответ является константой
+ *  anst = IDENT- значение в статике, в anstdisl смещение от l или g
+ *  в ansttype всегда тип возвращаемого значения
+ *  если значение указателя, адрес массива или строки лежит на верхушке стека, то это VAL, а не ADDR
+ */ 
+int anst;
+int anstdispl;
+int ansttype;
+int leftansttype = -1;
+int g;
+int l;
+int x;
+int iniproc;
+
+int bad_printf_placeholder = 0;
+
+
+
+
+
+
+void printf_char(char wchar)
+{
+  printf("%c", wchar);
+}
+
+void fprintf_char(int f, int wchar)
+{
+  fputc(wchar, f);
+}
+
+char getf_char()
+{
+  return getc();
+}
+
+
+void error(int);
+void m_error(int);
+void warning(int);
+
+void printident(int r)
+{
+  r += 2; // ссылка на reprtab
+
+  do
+  {
+    printf_char(reprtab[r++]);
+  } while (reprtab[r] != 0);
+}
+
+void warning(int ernum)
+{
+  switch (ernum)
+  {
+    case 400:
+      printf("слишком большая целая константа, преобразована в ДЛИН (DOUBLE)\n");
+      break;
+
+    default:
+      break;
+  }
+}
+
+void error(int ernum)
+{
+  int i;
+  int j;
+
+
+  printf("\n");
+  printf("ошибка: ");
+  switch (ernum)
+  {
+    case 201:
+      printf("после символа типа должен быть идентификатор или * идентификатор\n");
+      break;
+    case 202:
+      printf("ожидалась ]\n");
+      break;
+    case 203:
+      printf("только функции могут иметь тип ПУСТО\n");
+      break;
+    case 204:
+      printf("прототип функции и ее описание имеют разные типы\n");
+      break;
+    case 205:
+      printf("описание может начинаться только с описателя или идентификатора\n");
+      break;
+    case 206:
+      printf("параметры должны разделяться запятыми\n");
+      break;
+    case 207:
+      printf("неправильный список параметров\n");
+      break;
+    case 208:
+      printf("типы должны разделяться запятыми\n");
+      break;
+    case 209:
+      printf("неправильный список типов\n");
+      break;
+    case 210:
+      printf("определение функции должно быть первым в списке описаний\n");
+      break;
+    case 211:
+      printf("определение функции должно иметь список параметров, а не типов\n");
+      break;
+    case 212:
+      printf("список описаний должен заканчиваться ;\n");
+      break;
+    case 213:
+      printf("функция и прототип имеют разное количество параметров\n");
+      break;
+    case 214:
+      printf("не совпадают типы параметров функции и прототипа\n");
+      break;
+    case 215:
+      printf("в описании после , ожидается идентификатор или * идентификатор\n");
+      break;
+    case 216:
+      printf("нет ) в вызове функции\n");
+      break;
+    case 217:
+      printf("вообще-то я думал, что это предописание функции (нет идентификаторов-параметров), а тут тело функции\n");
+      break;
+    case 218:
+      printf("ждем ПОКА в операторе ЦИКЛ\n");
+      break;
+    case 219:
+      printf("нет ; после оператора\n");
+      break;
+    case 220:
+      printf("условие должно быть в ()\n");
+      break;
+    case 221:
+    {
+      printf("повторное описание идентификатора ");
+      printident(repr);
+      printf("\n");
+    }
+      break;
+    case 222:
+      printf("инициализация массива должна начинаться со {\n");
+      break;
+    case 382:
+      printf("инициализация структуры должна начинаться со {\n");
+      break;
+    case 223:
+      printf("между элементами инициализации массива или структуры должна быть ,\n");
+      break;
+    case 224:
+    {
+      printf("не описан идентификатор ");
+      printident(repr);
+      printf("\n");
+    }
+      break;
+    case 225:
+      printf("не хватает ] в вырезке элемента массива\n");
+      break;
+    case 226:
+      printf("в выражении встретился элемент типа ПУСТО\n");
+      break;
+    case 227:
+      printf("индекс элемента массива должен иметь тип ЦЕЛ\n");
+      break;
+    case 228:
+      printf("попытка вырезки элемента не из массива\n");
+      break;
+    case 229:
+      printf("попытка вызова не функции\n");
+      break;
+    case 230:
+      printf("после фактического параметра должна быть ,\n");
+      break;
+    case 231:
+      printf("формальный параметр имеет тип ЦЕЛ, а фактический - ВЕЩ\n");
+      break;
+    case 232:
+      printf("неправильное количество фактических параметров\n");
+      break;
+    case 233:
+      printf("не хватает ) в первичном выражении\n");
+      break;
+    case 234:
+      printf("++ и -- применимы только к переменным и элементам массива\n");
+      break;
+    case 235:
+      printf("операция получения адреса & применима только к переменным\n");
+      break;
+    case 236:
+      printf("нет : в условном выражении\n");
+      break;
+    case 237:
+      printf("слева от присваивания или операции с присваиванием может быть только переменная или элемент массива\n");
+      break;
+    case 238:
+      printf("функция может быть использована только в вызове\n");
+      break;
+    case 239:
+      printf("после выражения в выборе нет :\n");
+      break;
+    case 240:
+      printf("встретился выбор после умолчания\n");
+      break;
+    case 241:
+      printf("после goto должна быть метка, т.е. идентификатор\n");
+      break;
+    case 242:
+      printf("в операторе цикла ДЛЯ нет (\n");
+      break;
+    case 243:
+      printf("в операторе цикла ДЛЯ нет ;\n");
+      break;
+    case 244:
+      printf("в операторе цикла ДЛЯ нет )\n");
+      break;
+    case 245:
+      printf("операция, применимая только к целым, применена к вещественному аргументу\n");
+      break;
+    case 246:
+      printf("нельзя присваивать целому вещественное значение\n");
+      break;
+    case 247:
+      printf("в программе может быть только 1 идентификатор ГЛАВНАЯ\n");
+      break;
+    case 248:
+      printf("в каждой программе должна быть ГЛАВНАЯ функция\n");
+      break;
+    case 249:
+      printf("в колманде ПЕЧАТЬИД или ЧИТАТЬИД нет (\n");
+      break;
+    case 250:
+      printf("в команде ПЕЧАТЬИД или ЧИТАТЬИД нет )\n");
+      break;
+    case 251:
+      printf("в команде ПЕЧАТЬИД или ЧИТАТЬИД нет идентификатора\n");
+      break;
+    case 252:
+      printf("в условии переключателя можно использовать только типы ЛИТЕРА и ЦЕЛ\n");
+      break;
+    case 253:
+      printf("целая или литерная переменная инициализируется значением типа ВЕЩ\n");
+      break;
+    case 254:
+      printf("должна быть цифра перед или после .\n");
+      break;
+    case 293:
+      printf("должна быть цифра после e\n");
+      break;
+    case 255:
+      printf("в команде управления роботом нет(\n");
+      break;
+    case 256:
+      printf("в команде управления роботом нет)\n");
+      break;
+    case 257:
+      printf("в команде управления роботом после первого параметра нет ,\n");
+      break;
+    case 258:
+      printf("в командах МОТОР, УСТНАПРЯЖЕНИЕ, ЦИФРДАТЧИК и АНАЛОГДАТЧИК параметры должны быть целыми\n");
+      break;
+    case 259:
+      printf("в команде СПАТЬ нет(\n");
+      break;
+    case 260:
+      printf("в команде СПАТЬ нет)\n");
+      break;
+    case 261:
+      printf("в вызове стандартной функции нет (\n");
+      break;
+    case 262:
+      printf("в вызове стандартной функции нет )\n");
+      break;
+    case 263:
+      printf("параметры стандартных функций могут быть только целыми и вещественными\n");
+      break;
+    case 264:
+      printf("в функции, возвращающей непустое значение, нет оператора ВОЗВРАТ со значением\n");
+      break;
+    case 265:
+      printf("в функции, возвращающей целое или литерное значение, оператор ВОЗВРАТ со значением ВЕЩ\n");
+      break;
+    case 266:
+      printf("в функции, возвращающей пустое значение, оператор ВОЗВРАТ со значением\n");
+      break;
+    case 267:
+      printf("неизвестный служебный символ\n");
+      break;
+    case 268:
+      printf("символьная константа не заканчивается символом '\n");
+      break;
+    case 269:
+      printf("встретилось описание после оператора\n");
+      break;
+    case 270:
+      printf("слишком длинная строка ( больше, чем MAXSTRINGL)\n");
+      break;
+    case 271:
+      printf("в описании параметра функции после * нет идентификатора\n");
+      break;
+    case 272:
+      printf("* перед описанием функции\n");
+      break;
+    case 273:
+      printf("операция * применяется не к указателю\n");
+      break;
+    case 274:
+      printf("операцию * нельзя применять к массивам\n");
+      break;
+    case 276:
+      printf("неправильная запись функции, передаваемой параметром в другую функцию\n");
+      break;
+    case 277:
+      printf("нет ) в функции, передаваемой параметром в другую функцию\n");
+      break;
+    case 278:
+      printf("нет идентификатора в параметре определения функции\n");
+      break;
+    case 279:
+      printf("в параметре функции тип пусто может быть только у параметра-функции\n");
+      break;
+    case 280:
+      printf("в деклараторах (предописаниях) могут быть только типы, но без идентификаторов-параметров\n");
+      break;
+    case 281:
+      printf("функция не может выдавать значение типа массив\n");
+      break;
+    case 282:
+      printf("вообще-то, я думал, что это определение функции, а тут нет идентификатора-параметра\n");
+      break;
+    case 283:
+      printf("вообще-то, я думал, что это предописание функции, а тут идентификатор-параметр\n");
+      break;
+    case 284:
+      printf("в описании функции на каждый описатель должен быть один параметр\n");
+      break;
+    case 285:
+      printf("есть параметры определения функции, но нет блока, являющегося ее телом\n");
+      break;
+    case 286:
+      printf("предописание нельзя использовать в вызове\n");
+      break;
+    case 287:
+      printf("типы формального и фактического параметров различаются\n");
+      break;
+    case 275:
+      printf("условие должно иметь тип ЦЕЛ или ЛИТЕРА\n");
+      break;
+    case 288:
+      printf("метка СЛУЧАЙ или УМОЛЧАНИЕ не в операторе ВЫБОР\n");
+      break;
+    case 289:
+      printf("оператор ВЫХОД не в цикле и не в операторе ВЫБОР\n");
+      break;
+    case 290:
+      printf("оператор ПРОДОЛЖИТЬ не в цикле\n");
+      break;
+    case 291:
+      printf("первичное не может начинаться с лексемы %i\n", cur);
+      break;
+    case 292:
+      printf("операнд операции может иметь только тип ЦЕЛ, ЛИТ или ВЕЩ\n");
+      break;
+    case 294:
+    {
+      printf("в строке %i переход на неописанную метку ", hash);
+      printident(repr);
+      printf("\n");
+    }
+      break;
+    case 295:
+    {
+      printf("повторное описание метки ");
+      printident(repr);
+      printf("\n");
+    }
+      break;
+    case 296:
+      printf("в присваивании указателей не совпадают типы\n");
+      break;
+    case 297:
+      printf("комментарий не закрыт\n");
+      break;
+    case 298:
+      printf("операнд бинарной формулы не может быть указателем\n");
+      break;
+    case 299:
+      printf("указатели нельзя печатать\n");
+      break;
+    case 300:
+      printf("неправильное описание структуры\n");
+      break;
+    case 301:
+      printf("после . или -> должен быть идентификатор-имя поля структуры\n");
+      break;
+    case 302:
+      printf("у структуры нет такого поля\n");
+      break;
+    case 303:
+      printf("применять операцию . можно только к структуре\n");
+      break;
+    case 304:
+      printf("применять операцию -> можно только к указателю на структуру\n");
+      break;
+    case 399:
+      printf("применять операцию -> можно только к указателю на структуру, а тут что-то странное\n");
+      break;
+
+    case 306:
+      printf("Несоотетствие типов при инициализации переменной\n");
+      break;
+    case 305:
+      printf("Несоответствие типов при инициализации массива\n");
+      break;
+    case 307:
+      printf("Несоответствие типов\n");
+      break;
+    case 308:
+      printf("Присваивание в массив запрещено\n");
+      break;
+    case 309:
+      printf("Для структур и указателей допустима только операция присваивания =\n");
+      break;
+    case 310:
+      printf("в инициализации структуры меньше выражений, чем полей\n");
+      break;
+    case 311:
+      printf("переменные такого типа нельзя инициализировать\n");
+      break;
+    case 312:
+      printf("инициализировать можно только массивы с константными границами\n");
+      break;
+    case 313:
+      printf("в инициализации массива элементов больше, чем в массиве\n");
+      break;
+    case 314:
+    {
+      printf("нет такого поля ");
+      printident(repr);
+      printf(" в структуре");
+      printf("\n");
+    }
+      break;
+    case 315:
+      printf("вырезка элемента из массива, выданного функцией, а функции не могут выдавать массивы\n");
+      break;
+    case 316:
+      printf("странный toval ansttype=%i\n", ansttype);
+      break;
+    case 317:
+      printf("в инициализации структуры здесь ожидалась правая фигурная скобка }\n");
+      break;
+    case 318:
+      printf("фактическим параметром-функцией может быть только идентификатор\n");
+      break;
+    case 319:
+      printf("в левой части присваивания стоит что-то, чему нельзя присваивать\n");
+      break;
+    case 320:
+      printf("в РуСи не бывает указателей на массивы\n");
+      break;
+    case 321:
+      printf("размер массива может иметь тип только ЦЕЛ или ЛИТЕРА\n");
+      break;
+    case 322:
+      printf("описание поля структуры должно заканчиваться ;\n");
+      break;
+    case 323:
+      printf("в структуре после типа поля должен идти идентификатор поля\n");
+      break;
+    case 324:
+      printf("в РуСи можно определять границы массива по инициализации только по младшему измерению\n");
+      break;
+    case 325:
+      printf("в качестве описателя можно использовать только идентификаторы, описанные как типы\n");
+      break;
+    case 326:
+      printf("здесь должен быть тип (стандартный или описанный пользователем)\n");
+      break;
+    case 327:
+    {
+      printf("функция ");
+      printident(repr);
+      printf(" была предопределена, но не описана\n");
+    }
+      break;
+    case 328:
+      printf("операнд оператора печати должен быть в круглых скобках ()\n");
+      break;
+    case 329:
+      printf("выборка поля . не из структуры\n");
+      break;
+    case 330:
+      printf("в РуСи структуру-значение функции можно только присвоить или передать параметром\n");
+      break;
+    case 331:
+      printf("в РуСи только структуре можно присвоить или передать параметром запись {,,,}\n");
+      break;
+    case 332:
+      printf("процедуры, управляющие параллельными нитями, могут иметь только целые параметры\n");
+      break;
+    case 341:
+      printf("неправильный тип аргумента в процедуре t_msg_send, должен иметь тип msg_info\n");
+      break;
+    case 342:
+      printf("неправильный тип аргумента в процедуре t_create, должен иметь тип void*(void*)\n");
+      break;
+
+    case 333:
+      printf("ошибка препроцессора: elif после else\n");
+      break;
+    case 334:
+      printf("ошибка препроцессора: встречено ключевое слово elif или else или endif, но не было if(или ifdef)\n");
+      break;
+    case 335:
+      printf("ошибка препроцессора: не найден идентификатор после define\n");
+      break;
+    case 336:
+      printf("ошибка препроцессора: не найден endif\n");
+      break;
+    case 337:
+      printf("ошибка препроцессора: не найдены параметры для макроподстановки\n");
+      break;
+    case 338:
+      printf("ошибка препроцессора: ожидается идент после запятой в параметрах макроподстановки\n");
+      break;
+    case 339:
+      printf("ошибка препроцессора: ожидается закрывающая скобка в параметрах макроподстановки\n");
+      break;
+    case 340:
+      printf("ошибка препроцессора: количество параметров в макроподстановке не совпадает с заданным\n");
+      break;
+
+    case 343:
+      printf("Не хватает открывающей скобки в printf/печатьф\n");
+      break;
+    case 344:
+      printf("Не хватает закрывающей скобки в printf/печатьф\n");
+      break;
+    case 345:
+      printf("Первым параметром в printf/печатьф должна быть константная форматная строка\n");
+      break;
+    case 346:
+    {
+      printf("Тип параметра printf/печатьф не соответствует спецификатору: ");
+      printf_char(bad_printf_placeholder);
+      switch (bad_printf_placeholder)
+      {
+        case 'i':
+          printf(" ожидает целое число\n");
+          break;
+        case 1094:  // 'ц'
+
+          printf(" ожидает целое число\n");
+          break;
+
+        case 'c':
+          printf(" (англ.)");
+          printf(" ожидает литеру\n");
+          break;
+        case 1083:  // л
+
+          printf(" ожидает литеру\n");
+          break;
+
+        case 'f':
+          printf(" ожидает вещественное число\n");
+          break;
+        case 1074:  // в
+
+          printf(" ожидает вещественное число\n");
+          break;
+
+        case 1089:  // с
+
+          printf(" (русск.)");
+        case 's':
+          printf(" ожидает строку\n");
+          break;
+        default:
+          printf(" -- неизвестный спецификатор");
+      }
+    }
+      break;
+    case 347:
+      printf("Количество параметров printf/печатьф не соответствует количеству спецификаторов\n");
+      break;
+    case 348:
+      printf("В printf/печатьф нет спецификатора типа после \n");
+      break;
+    case 349:
+    {
+      printf("В printf/печатьф неизвестный спецификатор типа ");
+      printf_char(bad_printf_placeholder);
+      printf("\n");
+    }
+      break;
+    case 350:
+      printf("Максимально в printf/печатьф можно выводить %i значений\n", 20);
+      break;
+
+    case 351:
+      printf("нет * в cast (приведении)\n");
+      break;
+    case 352:
+      printf("нет ) в cast (приведении)\n");
+      break;
+    case 353:
+      printf("cast (приведение) может быть применено только к указателю\n");
+      break;
+    case 354:
+      printf("в описании массива границы не указаны, а инициализации нет\n");
+      break;
+    case 355:
+      printf("инициализация, начинающаяся с {, должна соответствовать массиву или структуре\n");
+      break;
+    case 356:
+      printf("если в инициализаторе встретилась строка, то и дальше должны быть только строки\n");
+      break;
+    case 357:
+      printf("в инициализаторе-фактическом параметре функции могут быть только константы\n");
+      break;
+    case 358:
+      printf("в инициализаторе ожидали , или }\n");
+      break;
+    case 359:
+      printf("после ОПРЕД (DEFINE) должен идти идентификатор\n");
+      break;
+    case 360:
+      printf("сейчас в DEFINE может быть только целое число со знаком\n");
+      break;
+    case 361:
+      printf("вторым параметром GETDIGSENSOR должна быть явная запись массива из целых констант\n");
+      break;
+    case 364:
+      printf("в операции над строками после параметра нет , \n");
+      break;
+    case 362:
+      printf("в операции над строками параметр не строка\n");
+      break;
+    case 363:
+      printf("в этой операции этот параметр должен иметь тип ЦЕЛ\n");
+      break;
+    case 384:
+      printf("в этой операции этот параметр должен иметь тип ВЕЩ\n");
+      break;
+    case 365:
+      printf("в этой операции над строками первый параметр должен быть указателем на строку\n");
+      break;
+    case 383:
+      printf("в этой операции этот параметр должен иметь тип массив целых\n");
+      break;
+    case 385:
+      printf("в этой операции этот параметр должен иметь тип массив\n");
+      break;
+
+    default:
+      printf("этот код ошибки я прозевал\n");
+  }
+  printf("\tсмотри символ %i:%i\n", _row, _col);
+  t_exit();
+
+}
+
+void m_error(int ernum)
+{
+  int i;
+
+  // tablesandtree();
+
+  printf("line %i) ", mline);
+  for (i = mlines[mline]; i < m_charnum; i++)
+  {
+    printf_char(before_source[i]);
+  }
+
+  printf("\n");
+  switch (ernum)
+  {
+    case 381:
+      printf("Неправильное использование ключевого слово препроцессора, далее должен идти символ ' 'или'\\n'или'\\t' \n");
+      break;
+    case 366:
+      printf("После индентификатора должен идти ' ' \n");
+      break;
+    case 367:
+      printf("Идентификатор должен начинаться с буквы \n");
+      break;
+    case 368:
+      printf("Условный оператор препроцессора должен заканчиваться 'ENDIF' \n");
+      break;
+    case 369:
+      printf("В этом типе условного оператора не может использоваться 'ELIF' \n");
+      break;
+    case 370:
+      printf("В препроцессоре не сущетвует написанной команды\n");
+      break;
+    case 371:
+      printf("У этой функции меньше параметров\n");
+      break;
+    case 372:
+      printf("Идентификатор функции должн начинаться с буквы\n");
+      break;
+    case 373:
+      printf("После идентификатора в функции должны быть ')' или ',' потом ' ' \n");
+      break;
+    case 374:
+      printf("В функции аргументы должны быть описаны через запятую, в скобках\n");
+      break;
+    case 375:
+      printf("if ещё не реализован");
+      break;
+    case 376:
+      printf("Перед 'ENDIF' должен стоять условный оператор препроцессора\n");
+      break;
+    case 377:
+      printf("Этот идентификатор препроцессора уже используется\n");
+      break;
+    case 297:
+      printf("Комментарий, начавшийся с , не закрыт\n");
+      break;
+    case 378:
+      printf("У этой функции больше параметров\n");
+      break;
+    case 379:
+      printf("Фаил не может оканчиваться данной командой препроцессора\n");
+      break;
+    case 380:
+      printf("Количество открывающих скобок не соотвеcтвует числу закрывающих\n");
+      break;
+    case 386:
+      printf("Идентификатор должен начинаться с '\"'\n");
+      break;
+    default:;
+  }
+  t_exit();
+}
+
+
+
+
+
+
+int getnext();
+void nextch();
+
+int letter();
+int digit();
+int equal(int, int);
+
+int scan();
+int scaner();
+
+void reset_row_col() {
+  _row = 1;
+  _col = 0;
+}
+
+int getnext()
+{
+    // reads UTF-8
+
+
+    char firstchar;
+    char secondchar;
+
+    firstchar = fgetc(input);
+    _col++;
+
+    if (firstchar == 10) {
+      _row++;
+      _col = 0;
+    }
+
+    if (firstchar == 2047)
+    {
+        return -1;
+    }
+    else
+    {
+        nextchar = firstchar;
+
+        if (nextchar == 13 /* cr */ )
+        {
+            getnext();
+        }
+    }
+
+    return nextchar;
+}
+
+void onemore()
+{
+    curchar = nextchar;
+    nextchar = getnext();
+}
+
+void endofline()
+{
+    if (prep_flag == 1)
+    {
+        int j;
+
+        printf("\t %i) \t", line - 1);
+
+        for (j = lines[line - 1]; j < lines[line]; j++)
+        {
+            if (source[j] != -1)
+            {
+                printf_char(source[j]);
+            }
+        }
+        // реализовано на VM
+
+        //fflush(stdout);
+
+    }
+}
+
+void endnl()
+{
+    lines[++line] = charnum;
+    lines[line + 1] = charnum;
+
+    if (kw)
+    {
+        endofline();
+    }
+}
+
+void nextch()
+{
+    onemore();
+    if (curchar == -1)
+    {
+        onemore();
+        lines[++line] = charnum;
+        lines[line + 1] = charnum;
+
+        if (kw)
+        {
+            endofline();
+            printf("\n");
+        }
+
+        return;
+    }
+
+    source[charnum++] = curchar;
+    if (instring)
+    {
+        return;
+    }
+
+    if (curchar == '/' && nextchar == '/')
+    {
+        do
+        {
+            onemore();
+            source[charnum++] = curchar;
+
+            if (curchar == -1)
+            {
+                endnl();
+                printf("\n");
+                return;
+            }
+        } while (curchar != '\n');
+
+        endnl();
+        return;
+    }
+
+    if (curchar == '/' && nextchar == '*')
+    {
+        onemore();
+        source[charnum++] = curchar;  // надо сразу выесть /*, чтобы не попасть на /*/
+
+        do
+        {
+            onemore();
+            source[charnum++] = curchar;
+
+            if (curchar == -1)
+            {
+                endnl();
+                printf("\n");
+                error(297);
+            }
+
+            if (curchar == '\n')
+            {
+                endnl();
+            }
+        } while (curchar != '*' || nextchar != '/');
+
+        onemore();
+        source[charnum++] = curchar;
+        curchar = ' ';
+
+        return;
+    }
+
+    if (curchar == '\n')
+    {
+        endnl();
+    }
+
+    return;
+}
+
+void next_string_elem()
+{
+    num = curchar;
+    if (curchar == '\\')
+    {
+        nextch();
+
+        if (curchar == 'n' || curchar == 'н' /*'н'*/ )
+        {
+            num = 10;
+        }
+        else if (curchar == 't' || curchar == 'т' /*'т'*/ )
+        {
+            num = 9;
+        }
+        else if (curchar == '0')
+        {
+            num = 0;
+        }
+        else if (curchar != '\'' && curchar != '\\' && curchar != '\"')
+        {
+            error(267);
+        }
+        else
+        {
+            num = curchar;
+        }
+    }
+
+    nextch();
+}
+
+int letter()
+{
+    return (curchar >= 'A' && curchar <= 'Z') || (curchar >= 'a' && curchar <= 'z') || curchar == '_' ||
+           (curchar >= 'А' /*'А'*/  && curchar <= 'я' /*'я'*/ );
+}
+
+int digit()
+{
+    return curchar >= '0' && curchar <= '9';
+}
+
+int ispower()
+{
+  return curchar == 'e' || curchar == 'E';  // || curchar == 'е' || curchar == 'Е') // это русские е и Е
+
+}
+
+int equal(int i, int j)
+{
+  ++i;
+  ++j;
+
+  while (reprtab[++i] == reprtab[++j])
+  {
+    if (reprtab[i] == 0 && reprtab[j] == 0)
+    {
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+int scannumbr() {
+  int flagint = 1;
+  int flagtoolong = 0;
+  double k;
+
+  num = 0;
+  numdouble = 0.0;
+  while (digit())
+  {
+    numdouble = numdouble * 10 + (curchar - '0');
+    if (numdouble > 2147483647)
+    {
+      flagtoolong = 1;
+      flagint = 0;
+    }
+
+    num = num * 10 + (curchar - '0');
+    nextch();
+  }
+
+  if (curchar == '.')
+  {
+    flagint = 0;
+    nextch();
+    k = 0.1;
+
+    while (digit())
+    {
+      numdouble += (curchar - '0') * k;
+      k *= 0.1;
+      nextch();
+    }
+  }
+
+  if (ispower())
+  {
+    int d = 0;
+    int k = 1;
+    int i;
+
+    nextch();
+    if (curchar == '-')
+    {
+      flagint = 0;
+      nextch();
+      k = -1;
+    }
+    else if (curchar == '+')
+    {
+      nextch();
+    }
+
+    if (!digit())
+    {
+      error(293);
+    }
+
+    while (digit())
+    {
+      d = d * 10 + curchar - '0';
+      nextch();
+    }
+
+    if (flagint)
+    {
+      for (i = 1; i <= d; i++)
+      {
+        num *= 10;
+      }
+    }
+
+    if (k > 0)
+    {
+      for (i = 1; i <= d; i++)
+      {
+        numdouble *= 10;
+      }
+    }
+    else
+    {
+      for (i = 1; i <= d; i++)
+      {
+        numdouble *= 0.1;
+      }
+    }
+  }
+
+  if (flagint)
+  {
+    ansttype = -1;
+    return 108;
+  }
+  else
+  {
+    if (flagtoolong)
+    {
+      warning(400);
+    }
+    ansttype = -3;
+  }
+
+  dtonumr(&numr, &numdouble);
+  return 108;
+}
+
+int scan()
+{
+  int cr;
+
+  while (curchar == ' ' || curchar == '\t' || curchar == '\n')
+  {
+    nextch();
+  }
+
+  // printf("scan curchar=%c %i\n", curchar, curchar);
+
+  switch (curchar)
+  {
+    case -1:
+      return 120;
+    case ',':
+    {
+      nextch();
+      return 100;
+    }
+
+    case '=':
+    {
+      nextch();
+
+      if (curchar == '=')
+      {
+        nextch();
+        cr = 9031;
+      }
+      else
+      {
+        cr = 9007;
+      }
+
+      return cr;
+    }
+
+    case '*':
+    {
+      nextch();
+
+      if (curchar == '=')
+      {
+        nextch();
+        cr = 9010;
+      }
+      else
+      {
+        cr = 9039;
+      }
+
+      return cr;
+    }
+
+    case '/':
+    {
+      nextch();
+
+      if (curchar == '=')
+      {
+        nextch();
+        cr = 9011;
+      }
+      else
+      {
+        cr = 9040;
+      }
+
+      return cr;
+    }
+
+    case '%':
+    {
+      nextch();
+
+      if (curchar == '=')
+      {
+        nextch();
+        cr = 9001;
+      }
+      else
+      {
+        cr = 9023;
+      }
+
+      return cr;
+    }
+
+    case '+':
+    {
+      nextch();
+
+      if (curchar == '=')
+      {
+        nextch();
+        cr = 9008;
+      }
+      else if (curchar == '+')
+      {
+        nextch();
+        cr = 9043;
+      }
+      else
+      {
+        cr = 9037;
+      }
+
+      return cr;
+    }
+
+    case '-':
+    {
+      nextch();
+
+      if (curchar == '=')
+      {
+        nextch();
+        cr = 9009;
+      }
+      else if (curchar == '-')
+      {
+        nextch();
+        cr = 9044;
+      }
+      else if (curchar == '>')
+      {
+        nextch();
+        cr = 121;
+      }
+      else
+      {
+        cr = 9038;
+      }
+
+      return cr;
+    }
+
+    case '<':
+    {
+      nextch();
+
+      if (curchar == '<')
+      {
+        nextch();
+        if (curchar == '=')
+        {
+          nextch();
+          cr = 9002;
+        }
+        else
+        {
+          cr = 9024;
+        }
+      }
+      else if (curchar == '=')
+      {
+        nextch();
+        cr = 9035;
+      }
+      else
+      {
+        cr = 9033;
+      }
+
+      return cr;
+    }
+
+    case '>':
+    {
+      nextch();
+
+      if (curchar == '>')
+      {
+        nextch();
+
+        if (curchar == '=')
+        {
+          nextch();
+          cr = 9003;
+        }
+        else
+        {
+          cr = 9025;
+        }
+      }
+      else if (curchar == '=')
+      {
+        nextch();
+        cr = 9036;
+      }
+      else
+      {
+        cr = 9034;
+      }
+
+      return cr;
+    }
+
+    case '&':
+    {
+      nextch();
+
+      if (curchar == '=')
+      {
+        nextch();
+        cr = 9004;
+      }
+      else if (curchar == '&')
+      {
+        nextch();
+        cr = 9029;
+      }
+      else
+      {
+        cr = 9026;
+      }
+
+      return cr;
+    }
+
+    case '^':
+    {
+      nextch();
+
+      if (curchar == '=')
+      {
+        nextch();
+        cr = 9005;
+      }
+      else
+      {
+        cr = 9027;
+      }
+
+      return cr;
+    }
+
+    case '|':
+    {
+      nextch();
+
+      if (curchar == '=')
+      {
+        nextch();
+        cr = 9006;
+      }
+      else if (curchar == '|')
+      {
+        nextch();
+        cr = 9030;
+      }
+      else
+      {
+        cr = 9028;
+      }
+
+      return cr;
+    }
+
+    case '!':
+    {
+      nextch();
+
+      if (curchar == '=')
+      {
+        nextch();
+        cr = 9032;
+      }
+      else
+      {
+        cr = 9053;
+      }
+
+      return cr;
+    }
+
+    case '\'':
+    {
+      instring = 1;
+      nextch();
+      next_string_elem();
+
+      if (curchar != '\'')
+      {
+        error(268);
+      }
+
+      nextch();
+      instring = 0;
+      ansttype = -2;
+
+      return 108;
+    }
+
+    case '\"':
+    {
+      int n = 0;
+      int flag = 1;
+
+      instring = 1;
+      nextch();
+      while (flag)
+      {
+        while (curchar != '\"' && n < 300000)
+        {
+          next_string_elem();
+          lexstr[n++] = num;
+          // printf("n= %i %c %i\n", n-1, num, num);
+
+        }
+
+        if (n == 300000)
+        {
+          error(270);
+        }
+
+        nextch();
+        while (curchar == ' ' || curchar == '\t' || curchar == '\n')
+        {
+          nextch();
+        }
+
+        if (curchar == '\"')
+        {
+          nextch();
+        }
+        else
+        {
+          flag = 0;
+        }
+      }
+
+      num = n;
+      instring = 0;
+      return 107;
+    }
+
+    case '(':
+    {
+      nextch();
+      return 103;
+    }
+
+    case ')':
+    {
+      nextch();
+      return 104;
+    }
+
+    case '[':
+    {
+      nextch();
+      return 105;
+    }
+
+    case ']':
+    {
+      nextch();
+      return 106;
+    }
+
+    case '~':
+    {
+      nextch();
+      return 9052;  // поразрядное отрицание
+
+    }
+    case '{':
+    {
+      nextch();
+      return 115;
+    }
+    case '}':
+    {
+      nextch();
+      return 116;
+    }
+    case ';':
+    {
+      nextch();
+      return 117;
+    }
+    case '?':
+    {
+      nextch();
+      return 101;
+    }
+    case ':':
+    {
+      nextch();
+      return 102;
+    }
+    case '.':
+      if (nextchar < '0' || nextchar > '9')
+      {
+        nextch();
+        return 122;
+      }
+    case '0':
+      return scannumbr();
+    case '1':
+      return scannumbr();
+    case '2':
+      return scannumbr();
+    case '3':
+      return scannumbr();
+    case '4':
+      return scannumbr();
+    case '5':
+      return scannumbr();
+    case '6':
+      return scannumbr();
+    case '7':
+      return scannumbr();
+    case '8':
+      return scannumbr();
+    case '9':
+      return scannumbr();
+
+    default:
+    {
+      if (letter() || curchar == 35)
+      {
+        int oldrepr = rp;
+        int r;
+        rp += 2;
+        hash = 0;
+
+        // решетка на 1 месте -- значит, ключевое слово препроцессора
+
+        do
+        {
+          hash += curchar;
+          reprtab[rp++] = curchar;
+          nextch();
+        } while (letter() || digit());
+
+        hash &= 255;
+        reprtab[rp++] = 0;
+        r = hashtab[hash];
+        if (r)
+        {
+          do
+          {
+            if (equal(r, oldrepr))
+            {
+              rp = oldrepr;
+              if (reprtab[r + 1] < 0)
+                return reprtab[r + 1];
+              else {
+                repr = r;
+                return 109;
+              }
+              //return (reprtab[r + 1] < 0) ? reprtab[r + 1] : (repr = r, IDENT);
+
+            }
+            else
+            {
+              r = reprtab[r];
+            }
+          } while (r);
+        }
+
+        reprtab[oldrepr] = hashtab[hash];
+        repr = hashtab[hash] = oldrepr;
+        if (keywordsnum)
+          reprtab[repr + 1] = -((++keywordsnum - 2) / 4);
+        else
+          reprtab[repr + 1] = 1;
+        //reprtab[repr + 1] = (keywordsnum) ? -((++keywordsnum - 2) / 4) : 1;
+
+          // == 0 - только MAIN,
+
+          // <  0 - ключевые слова,
+
+          // == 1 - обычные иденты
+
+
+        return 109;
+      }
+      else
+      {
+        
+        printf_char(curchar);
+        printf("\n");
+        nextch();
+        t_exit();
+      }
+    }
+  }
+}
+
+int scaner()
+{
+  cur = next;
+  next = scan();
+
+  /*
+    if(kw)
+    {
+      printf("scaner cur %i next %i repr %i\n", cur, next, repr);
+    }
+  */ 
+
+  //printf("RuC: Сканер обнаружил символ %i\n", cur);
+
+  return cur;
+}
+
+
+void ext_decl();
+int szof(int);
+
+int onlystrings;
+
+void array_init(int);
+void block(int);
+void expr(int);
+void exprassn(int);
+void exprassnval();
+void exprval();
+int gettype();
+void struct_init(int);
+void unarexpr();
+
+
+int modeeq(int first_mode, int second_mode)
+{
+  int n;
+  int i;
+  int flag = 1;
+  int mode;
+
+  if (modetab[first_mode] != modetab[second_mode])
+  {
+    return 0;
+  }
+
+  mode = modetab[first_mode];
+  // определяем, сколько полей надо сравнивать для различных типов записей
+
+  if (mode == 1002 || mode == 1001) 
+    n = 2 + modetab[first_mode + 2];
+  else 
+    n = 1;
+  //n = mode == MSTRUCT || mode == MFUNCTION ? 2 + modetab[first_mode + 2] : 1;
+
+
+  for (i = 1; i <= n && flag; i++)
+  {
+    flag = modetab[first_mode + i] == modetab[second_mode + i];
+  }
+
+  return flag;
+}
+
+int check_duplicates()
+{
+  // проверяет, имеется ли в modetab только что внесенный тип
+
+  // если да, то возвращает ссылку на старую запись, иначе - на новую
+
+
+  int old = modetab[startmode];
+
+  while (old)
+  {
+    if (modeeq(startmode + 1, old + 1))
+    {
+      md = startmode;
+      startmode = modetab[startmode];
+      return old + 1;
+    }
+    else
+    {
+      old = modetab[old];
+    }
+  }
+  return startmode + 1;
+}
+
+int newdecl(int _type, int elemtype)
+{
+  modetab[md] = startmode;
+  startmode = md++;
+  modetab[md++] = _type;
+  modetab[md++] = elemtype; // ссылка на элемент
+
+
+  return check_duplicates();
+}
+
+int evaluate_params(int _num, int formatstr[], int formattypes[], int placeholders[])
+{
+  int numofparams = 0;
+  int i = 0;
+  int fsi;
+
+  /*
+    for (i=0; i<_num; i++)
+    {
+      printf("%c %i\n", formatstr[i], formatstr[i]);
+    }
+  */ 
+
+  for (i = 0; i < _num; i++)
+  {
+    if (formatstr[i] == '%')
+    {
+      if (fsi = formatstr[++i], fsi != '%')
+      {
+        if (numofparams == 20)
+        {
+          error(350);
+        }
+
+        placeholders[numofparams] = fsi;
+      }
+
+      switch (fsi)  // Если добавляется новый спецификатор -
+
+              // - не забыть внести его в switch в bad_printf_placeholder
+
+      {
+        case 'i':
+          formattypes[numofparams++] = -1;
+          break;
+        case 1094:  // 'ц'
+
+          formattypes[numofparams++] = -1;
+          break;
+
+        case 'c':
+          formattypes[numofparams++] = -2;
+          break;
+        case 1083:  // л
+
+          formattypes[numofparams++] = -2;
+          break;
+
+        case 'f':
+          formattypes[numofparams++] = -3;
+          break;
+        case 1074:  // в
+
+          formattypes[numofparams++] = -3;
+          break;
+
+        case 's':
+          formattypes[numofparams++] = newdecl(1003, -2);
+          break;
+        case 1089:  // с
+
+          formattypes[numofparams++] = newdecl(1003, -2);
+          break;
+
+        case '%':
+          break;
+
+        case 0:
+          error(348);
+          break;
+
+        default:
+        {
+          bad_printf_placeholder = fsi;
+          error(349);
+        }
+          break;
+      }
+    }
+  }
+
+  return numofparams;
+}
+
+int szof(int _type)
+{
+  if (next == 105)
+    return 1;
+  else if (_type == -3) 
+    return 2;
+  else if (_type > 0 && modetab[_type] == 1002)
+    return modetab[_type + 1];
+  else
+    return 1;
+  //return next == LEFTSQBR ? 1 : type == LFLOAT ? 2 : (type > 0 && modetab[type] == MSTRUCT) ? modetab[type + 1] : 1;
+
+}
+
+int is_row_of_char(int t)
+{
+  return t > 0 && modetab[t] == 1003 && modetab[t + 1] == -2;
+}
+
+int is_function(int t)
+{
+  return t > 0 && modetab[t] == 1001;
+}
+
+int is_array(int t)
+{
+  return t > 0 && modetab[t] == 1003;
+}
+
+int is_pointer(int t)
+{
+  return t > 0 && modetab[t] == 1004;
+}
+
+int is_struct(int t)
+{
+  return t > 0 && modetab[t] == 1002;
+}
+
+int is_float(int t)
+{
+  return t == -3 || t == -5;
+}
+
+int is_int(int t)
+{
+  return t == -1 || t == -4 || t == -2;
+}
+
+void mustbe(int what, int e)
+{
+  if (scaner() != what)
+  {
+    error(e);
+  }
+}
+
+void totree(int opp)
+{
+  //printf("RuC: Добавлено к дереву %i\n", opp);
+
+  tree[tc++] = opp;
+}
+
+void totreef(int opp)
+{
+  tree[tc++] = opp;
+
+  if (ansttype == -3 &&
+    ((opp >= 9007 && opp <= 9011) || (opp >= 9018 && opp <= 9022) || (opp >= 9031 && opp <= 9049)))
+  {
+    tree[tc - 1] += 50;
+  }
+}
+
+int getstatic(int _type)
+{
+  int olddispl = displ;
+  displ += lg * szof(_type); // lg - смещение от l (+1) или от g (-1)
+
+
+  if (lg > 0)
+  {
+    if (displ > maxdispl) 
+      maxdispl = displ;
+    else
+      maxdispl = maxdispl;
+    // maxdispl = (displ > maxdispl) ? displ : maxdispl;
+
+  }
+  else
+  {
+    maxdisplg = -displ;
+  }
+
+  return olddispl;
+}
+
+int toidentab(int f, int _type)
+{
+  // f ==       0, если не ф-ция,
+
+  // f ==       1, если метка,
+
+  // f == funcnum, если описание ф-ции,
+
+  // f ==      -1, если ф-ция-параметр,
+
+  // f >=    1000, если это описание типа,
+
+  // f ==      -2, если #define
+
+
+  // printf("\n f= %i repr %i rtab[repr] %i rtab[repr+1] %i rtab[repr+2] %i\n", f, repr, reprtab[repr],
+
+  // reprtab[repr+1], reprtab[repr+2]);
+
+
+  int pred;
+
+  lastid = id;
+  if (reprtab[repr + 1] == 0)       // это может быть только MAIN
+
+  {
+    if (wasmain)
+    {
+      error(247);
+    }
+    wasmain = id;
+  }
+
+  pred = identab[id] = reprtab[repr + 1]; // ссылка на описание с таким же представлением в предыдущем блоке
+
+  if (pred)               // pred == 0 только для main, эту ссылку портить нельзя
+
+  {
+    reprtab[repr + 1] = id;       // ссылка на текущее описание с этим представлением (это в reprtab)
+
+  }
+
+  if (f != 1 && pred >= curid)      // один и тот же идент м.б. переменной и меткой
+
+  {
+    if (func_def == 3 || 
+        func_def != 3 && identab[pred + 1] > 0 || 
+        func_def != 3 && identab[pred + 1] <= 0 && func_def != 1)
+    // if (func_def == 3 ? 1 : identab[pred + 1] > 0 ? 1 : func_def == 1 ? 0 : 1)
+
+    {
+      error(221); // только определение функции может иметь 2 описания, т.е. иметь предописание
+
+    }
+  }
+
+  identab[id + 1] = repr;     // ссылка на представление
+
+  if (f == -2)          // #define
+
+  {
+    identab[id + 2] = 1;
+    identab[id + 3] = _type;   // это целое число, определенное по #define
+
+  }
+  else              // дальше тип или ссылка на modetab (для функций и структур)
+
+  {
+    identab[id + 2] = _type;   // тип -1 int, -2 char, -3 float, -4 long, -5 double,
+
+                  // если тип > 0, то это ссылка на modetab
+
+
+    if (f == 1)
+    {
+      identab[id + 2] = 0;  // 0, если первым встретился goto, когда встретим метку, поставим 1
+
+      identab[id + 3] = 0;  // при генерации кода когда встретим метку, поставим pc
+
+    }
+    else if (f >= 1000)
+    {
+      identab[id + 3] = f;  // это описание типа, если f > 1000, то f-1000 - это номер иниц проц
+
+    }
+    else if (f)
+    {
+      if (f < 0)
+      {
+        identab[id + 3] = -(displ++);
+        maxdispl = displ;
+      }
+      else  // identtab[lastid+3] - номер функции, если < 0, то это функция-параметр
+
+      {
+        identab[id + 3] = f;
+        if (func_def == 2)
+        {
+          identab[lastid + 1] *= -1;  // это предописание
+
+          predef[++prdf] = repr;
+        }
+        else
+        {
+          int i;
+          for (i = 0; i <= prdf; i++)
+          {
+            if (predef[i] == repr)
+            {
+              predef[i] = 0;
+            }
+          }
+        }
+      }
+    }
+    else
+    {
+      identab[id + 3] = getstatic(type);
+    }
+  }
+  id += 4;
+
+  return lastid;
+}
+
+void binop(int _sp)
+{
+  int opp = stackop[_sp];
+  int rtype;
+  int ltype;
+
+  if (sopnd >= 0) {
+    rtype = stackoperands[sopnd];
+  }
+  else {
+    rtype = stack[100+sopnd];
+  }
+  sopnd--;
+  if (sopnd >= 0) {
+    ltype = stackoperands[sopnd];
+  }
+  else {
+    ltype = stack[100+sopnd];
+  }
+
+  if (is_pointer(ltype) || is_pointer(rtype))
+  {
+    error(298);
+  }
+
+  if ((opp == 9030 || opp == 9029 || opp == 9028 || opp == 9027 || opp == 9026 || opp == 9024 || opp == 9025 ||
+    opp == 9023) && (is_float(ltype) || is_float(rtype)))
+  {
+    error(245);
+  }
+
+  if (is_int(ltype) && is_float(rtype))
+  {
+    totree(9474);
+  }
+
+  if (is_int(rtype) && is_float(ltype))
+  {
+    totree(9473);
+  }
+
+  if (is_float(ltype) || is_float(rtype))
+  {
+    ansttype = -3;
+  }
+
+  if (opp == 9030 || opp == 9029)
+  {
+    totree(opp);
+    tree[stacklog[_sp]] = tc++;
+  }
+  else
+  {
+    totreef(opp);
+  }
+
+  if (opp >= 9031 && opp <= 9036)
+  {
+    ansttype = -1;
+  }
+
+  if (sopnd >= 0) {
+    stackoperands[sopnd] = ansttype;
+  }
+  else {
+    stack[100+sopnd] = ansttype;
+  }
+  // printf("binop sopnd=%i ltype=%i rtype=%i ansttype=%i\n", sopnd, ltype, rtype, ansttype);
+
+  anst = 110;
+}
+
+void toval()  // надо значение положить на стек, например, чтобы передать параметром
+
+{
+  if (anst == 110 || anst == 108);
+  else if (is_struct(ansttype))
+  {
+    if (!inass)
+    {
+      if (anst == 109)
+      {
+        tc -= 2;
+        totree(9304);
+        totree(anstdispl);
+      }
+      else  // тут может быть только ADDR
+
+      {
+        totree(9305);
+      }
+
+      totree(modetab[ansttype + 1]);
+      anst = 110;
+    }
+  }
+  else
+  {
+    if (anst == 109)
+    {
+      if (is_float(ansttype))
+        tree[tc - 2] = -340;
+      else
+        tree[tc - 2] = -305;
+    }
+
+    if (!(is_array(ansttype) || is_pointer(ansttype)))
+    {
+      if (anst == 111)
+      {
+        if (is_float(ansttype))
+          totree(-341);
+        else
+          totree(-306);
+        //totree(is_float(ansttype) ? TIdenttovald : TIdenttoval);
+
+      }
+    }
+    anst = 110;
+  }
+}
+
+void insertwiden()
+{
+  tc--;
+  totree(9473);
+  totree(-312);
+}
+
+void applid()
+{
+  lastid = reprtab[repr + 1];
+  if (lastid == 1)
+  {
+    error(224);
+  }
+}
+
+void actstring()
+{
+  int n = 0;
+  int adn;
+  totree(-302);
+  adn = tc++;
+  do
+  {
+    /*
+      if (scaner() == IDENT)
+      {
+        applid();
+        if (identab[lastid+2] == 1)
+        {
+          cur = NUMBER, ansttype = LINT, num = identab[lastid+3];
+        }
+      }
+    */ 
+
+    if (scaner() == 108 && (ansttype == -1 || ansttype == -2))
+    {
+      totree(num);
+    }
+    else
+    {
+      error(357);
+    }
+    ++n;
+  } while (scaner() == 100);
+
+  tree[adn] = n;
+  if (cur != 116)
+  {
+    error(358);
+  }
+  ansttype = newdecl(1003, -1);
+  anst = 110;
+}
+
+void mustbestring()
+{
+  scaner();
+  exprassn(1);
+  toval();
+  sopnd--;
+
+  if (!(ansttype > 0 && modetab[ansttype] == 1003 && modetab[ansttype + 1] == -2))
+  {
+    error(362);
+  }
+}
+
+void mustbepointstring()
+{
+  scaner();
+  exprassn(1);
+  toval();
+  sopnd--;
+
+  if (!(ansttype > 0 && modetab[ansttype] == 1004 && is_array(modetab[ansttype + 1]) &&
+    modetab[modetab[ansttype + 1] + 1] == -2))
+  {
+    error(365);
+  }
+}
+
+void mustberow()
+{
+  scaner();
+  exprassn(1);
+  toval();
+  sopnd--;
+
+  if (!(ansttype > 0 && modetab[ansttype] == 1003))
+  {
+    error(385);
+  }
+}
+
+void mustbeint()
+{
+  scaner();
+  exprassn(1);
+  toval();
+  sopnd--;
+
+  if (ansttype != -1 && ansttype != -2)
+  {
+    error(363);
+  }
+}
+
+void mustbeptr()
+{
+  scaner();
+  exprassn(1);
+  toval();
+  sopnd--;
+ 
+  if (!(ansttype > 0 && modetab[ansttype] == 1004))
+  {
+    error(365);
+  }
+}
+
+void mustberowofint()
+{
+  scaner();
+
+  if (cur == 115)
+  {
+    actstring(), totree(-312);
+  }
+  else
+  {
+    exprassn(1);
+    toval();
+    sopnd--;
+  }
+
+  if (!(ansttype > 0 && modetab[ansttype] == 1003 &&
+    (modetab[ansttype + 1] == -1 || modetab[ansttype + 1] == -2)))
+  {
+    error(383);
+  }
+}
+
+void primaryexpr()
+{
+  if (cur == 108)
+  {
+    if (ansttype == -3) // ansttype задается прямо в сканере
+
+    {
+      totree(-339);
+      totree(numr.first);
+      totree(numr.second);
+    }
+    else
+    {
+      totree(-301);
+      totree(num);    // LINT, LCHAR
+
+    }
+
+    ++sopnd;
+    if (sopnd >= 0) {
+      stackoperands[sopnd] = ansttype;
+    }
+    else {
+      stack[100+sopnd] = ansttype;
+    }
+    // printf("number sopnd=%i ansttype=%i\n", sopnd, ansttype);
+
+    anst = 108;
+  }
+  else if (cur == 107)
+  {
+    int i;
+
+    ansttype = newdecl(1003, -2);  // теперь пишем ansttype в анализаторе, а не в сканере
+
+    totree(-302);
+    totree(num);
+
+    for (i = 0; i < num; i++)
+    {
+      totree(lexstr[i]);
+    }
+
+    ++sopnd;  // ROWOFCHAR
+
+    if (sopnd >= 0) {
+      stackoperands[sopnd] = ansttype;
+    }
+    else {
+      stack[100+sopnd] = ansttype;
+    }
+    anst = 110;
+  }
+  else if (cur == 109)
+  {
+    applid();
+    /*
+      if (identab[lastid+2] == 1)     // #define
+      {
+        totree(TConst);
+        totree(num = identab[lastid+3]);
+        anst = NUMBER;
+        ansttype = LINT;
+      }
+      else
+    */ 
+    {
+      totree(-300);
+      anstdispl = identab[lastid + 3];
+      totree(anstdispl);
+      ansttype = identab[lastid + 2];
+      ++sopnd;
+      if (sopnd >= 0) {
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        stack[100+sopnd] = ansttype;
+      }
+      anst = 109;
+    }
+  }
+  else if (cur == 103)
+  {
+    if (next == -6)
+    {
+      scaner();
+      mustbe(9039, 351);
+      unarexpr();
+
+      if (!is_pointer(ansttype))
+      {
+        error(353);
+      }
+
+      mustbe(104, 352);
+      toval();
+      // totree(CASTC);
+
+      totree(-312);
+    }
+    else
+    {
+      int oldsp = sp;
+
+      scaner();
+      expr(1);
+      mustbe(104, 233);
+
+      while (sp > oldsp)
+      {
+        binop(--sp);
+      }
+    }
+  }
+  else if (cur <= -30)    // стандартная функция
+
+  {
+    int func = cur;
+
+    if (scaner() != 103)
+    {
+      error(261);
+    }
+
+    if (func <= -44 && func >= -51) // функции работы со строками
+
+    {
+      if (func >= -47)
+      {
+        mustbepointstring();
+      }
+      else
+      {
+        mustbestring();
+      }
+
+      if (func != -51)
+      {
+        mustbe(100, 364);
+        mustbestring();
+
+        if (func == -45 || func == -47 || func == -49)
+        {
+          mustbe(100, 364);
+          mustbeint();
+        }
+      }
+
+      if (func < -47)
+      {
+        ansttype = -1;
+        ++sopnd;
+        if (sopnd >= 0) {
+          stackoperands[sopnd] = ansttype;
+        }
+        else {
+          stack[100+sopnd] = ansttype;
+        }
+      }
+    }
+    else if (func >= -87 && func <= -71)  // функции Фадеева
+
+    {
+      notrobot = 0;
+      if (func <= -80 && func >= -87)
+      {
+        mustberowofint();
+        if (func != -84)
+        {
+          mustbe(100, 364);
+        }
+
+        if (func == -81 || func == -82 || func == -83)
+        {
+          mustbeint();
+          mustbe(100, 364);
+          mustbeint();
+          mustbe(100, 364);
+          mustbeint();
+          mustbe(100, 364);
+          mustbeint();
+
+          if (func != -81)
+          {
+            mustbe(100, 364);
+            mustbeint();
+          }
+        }
+        else if (func == -87 || func == -80)
+        {
+          mustbeint();
+          mustbe(100, 364);
+          mustbeint();
+
+          if (func == -87)
+          {
+            mustbe(100, 364);
+            mustbeint();
+          }
+        }
+        else if (func == -86 || func == -85)
+        {
+          mustbeint();
+          mustbe(100, 364);
+          mustbeint();
+          mustbe(100, 364);
+
+          if (func == -85)
+          {
+            mustbestring();
+          }
+          else  // DRAW_NUMBER
+
+          {
+            scaner();
+            exprassn(1);
+            toval();
+            sopnd--;
+            if (is_int(ansttype))
+            {
+              totree(9473);
+            }
+            else if (ansttype != -3)
+            {
+              error(384);
+            }
+          }
+        }
+      }
+      else if (func == -79)
+      {
+        mustbeint();
+        mustbe(100, 364);
+        mustberowofint();
+        mustbe(100, 364);
+        mustberowofint();
+      }
+      else if (func == -71 || func == -72 || func == -75)
+      {
+        mustbestring();
+
+        if (func == -71)
+        {
+          mustbe(100, 364);
+          mustbestring();
+        }
+      }
+      else
+      {
+        mustbeint();
+
+        if (func != -74)
+        {
+          mustbe(100, 364);
+          if (func == -78)
+          {
+            mustbestring();
+          }
+          else if (func == -73)
+          {
+            mustbeint();
+          }
+          else if (func == -76)
+          {
+            mustbestring();
+            mustbe(100, 364);
+            mustbestring();
+          }
+          else  // BLYNK_LCD
+
+          {
+            mustbeint();
+            mustbe(100, 364);
+            mustbeint();
+            mustbe(100, 364);
+            mustbestring();
+          }
+        }
+        else
+        {
+          ansttype = -1;
+          ++sopnd;
+          if (sopnd >= 0) {
+            stackoperands[sopnd] = ansttype;
+          }
+          else {
+            stack[100+sopnd] = ansttype;
+          }
+        }
+      }
+    }
+    else if (func == -88) // UPB
+
+    {
+      mustbeint();
+      mustbe(100, 364);
+      mustberow();
+      ansttype = -1;
+      ++sopnd;
+      if (sopnd >= 0) {
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        stack[100+sopnd] = ansttype;
+      }
+    }
+    else if (func == -89) // Функции работы с файлами
+
+    {
+      mustbestring();
+      mustbe(100, 364);
+      mustbestring();
+      ++sopnd;
+      if (sopnd >= 0) {
+        ansttype = -1;
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        ansttype = -2;
+        stack[100+sopnd] = ansttype;
+      }
+      //stackoperands[++sopnd] = ansttype = LINT;
+
+    }
+    else if (func == -90)
+    {
+      mustbeint();
+    }
+    else if (func == -91)
+    {
+      mustbeint();
+      mustbe(100, 364);
+      mustbeint();
+    }
+    else if (func == -92)
+    {
+      mustbeint();
+      ++sopnd;
+      if (sopnd >= 0) {
+        ansttype = -2;
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        ansttype = -2;
+        stack[100+sopnd] = ansttype;
+      }
+      //stackoperands[++sopnd] = ansttype = LCHAR;
+
+    }
+    else if (func == -94)
+    {
+      mustbeint();
+    }
+    else if (func == -95) 
+    {
+      ++sopnd;
+      if (sopnd >= 0) {
+        ansttype = -2;
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        ansttype = -2;
+        stack[100+sopnd] = ansttype;
+      }
+      //stackoperands[++sopnd] = ansttype = LCHAR;
+
+    }
+    else if (func == -97) 
+    {
+      mustbeptr();
+      mustbe(100, 364);
+      mustbeptr();
+    }
+    else if (func <= -52 && func >= -63) // процедуры управления параллельными нитями
+
+    {
+      if (func == -60 || func == -61 || func == -62);  // void()
+
+      else if (func == -53 || func == -63)      // getnum int()   msgreceive msg_info()
+
+      {
+        anst = 110;
+        if (func == -63)
+        {
+          ansttype = -1;
+          ++sopnd;
+          if (sopnd >= 0) {
+            stackoperands[sopnd] = ansttype;
+          }
+          else {
+            stack[100+sopnd] = ansttype;
+          }
+        }
+        else
+        {
+          ansttype = 2;
+          ++sopnd;
+          if (sopnd >= 0) {
+            stackoperands[sopnd] = ansttype;
+          }
+          else {
+            stack[100+sopnd] = ansttype;
+          }
+        }
+        //ansttype = stackoperands[++sopnd] = func == _TGETNUM ? LINT : 2;
+
+          // 2 - это ссылка на msg_info
+
+          // не было параметра, выдали 1 результат
+
+      }
+      else  // MSGSEND void(msg_info)   CREATE int(void*(*func)(void*))
+
+          // SEMCREATE int(int)   JOIN, SLEEP, SEMWAIT, SEMPOST void(int)
+
+      {
+        scaner(); // у этих процедур 1 параметр
+
+
+        if (func == -59)
+        {
+          int dn;
+
+          if (cur != 109)
+          {
+            error(318);
+          }
+
+          applid();
+
+          if (identab[lastid + 2] != 15)  // 15 - это аргумент типа void* (void*)
+
+          {
+            error(342);
+          }
+
+          ansttype = -1;
+          if (sopnd >= 0) {
+            stackoperands[sopnd] = ansttype;
+          }
+          else {
+            stack[100+sopnd] = ansttype;
+          }
+          dn = identab[lastid + 3];
+
+          if (dn < 0)
+          {
+            totree(-305);
+            totree(-dn);
+          }
+          else
+          {
+            totree(-301);
+            totree(dn);
+          }
+          anst = 110;
+        }
+        else
+        {
+          leftansttype = 2;
+          exprassn(1);
+          toval();
+
+          if (func == -52)
+          {
+            if (ansttype != 2)  // 2 - это аргумент типа msg_info (struct{int numTh; int data;})
+
+            {
+              error(341);
+            }
+            --sopnd;
+          }
+          else
+          {
+            if (!is_int(ansttype))
+            {
+              error(332);
+            }
+            if (func == -56)
+            {
+              anst = 110;
+              ansttype = -1; // съели 1 параметр, выдали int
+
+              if (sopnd >= 0) {
+                stackoperands[sopnd] = ansttype;
+              }
+              else {
+                stack[100+sopnd] = ansttype;
+              }
+            }
+            else
+            {
+              --sopnd;  // съели 1 параметр, не выдали результата
+
+            }
+          }
+        }
+      }
+    }
+    else if (func == -42)
+    {
+      ansttype = -3;
+      ++sopnd;
+      if (sopnd >= 0) {
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        stack[100+sopnd] = ansttype;
+      }
+    }
+    else if (func == -89) // Функции работы с файлами
+
+    {
+      mustbestring();
+      mustbe(100, 364);
+      mustbestring();
+      ansttype = -1;
+      ++sopnd;
+      if (sopnd >= 0) {
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        stack[100+sopnd] = ansttype;
+      }
+    }
+    else if (func == -90)
+    {
+      mustbeint();
+    }
+    else if (func == -91)
+    {
+      mustbeint();
+      mustbe(100, 364);
+      mustbeint();
+    }
+    else if (func == -92)
+    {
+      mustbeint();
+      ansttype = -2;
+      ++sopnd;
+      if (sopnd >= 0) {
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        stack[100+sopnd] = ansttype;
+      }
+    }
+    else if (func == -94)
+    {
+      mustbeint();
+    }
+    else if (func == -95) 
+    {
+      ansttype = -2;
+      ++sopnd;
+      if (sopnd >= 0) {
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        stack[100+sopnd] = ansttype;
+      }
+    }
+    else
+    {
+      scaner();
+      exprassn(1);
+      toval();
+
+      // GETDIGSENSOR int(int port, int pins[]), GETANSENSOR int (int port, int pin)
+
+      // SETMOTOR и VOLTAGE void (int port, int volt)
+
+      if (func == -31 || func == -32 || func == -30 || func == -33)
+      {
+        notrobot = 0;
+        if (!is_int(ansttype))
+        {
+          error(258);
+        }
+
+        mustbe(100, 257);
+        scaner();
+
+        if (func == -31)
+        {
+          if (cur == 115)
+          {
+            sopnd--, actstring();
+          }
+          else
+          {
+            error(361);
+          }
+        }
+        else
+        {
+          exprassn(1);
+          toval();
+
+          if (!is_int(ansttype))
+          {
+            error(258);
+          }
+          if (func == -30 || func == -33)
+          {
+            sopnd -= 2;
+          }
+          else
+          {
+            --sopnd, anst = 110;
+          }
+        }
+
+        if (func == -30 || func == -33)
+        {
+          sopnd -= 2;
+        }
+        else
+        {
+          anst = 110, --sopnd;
+        }
+      }
+      else if (func == -34 && is_int(ansttype))
+      {
+        func = -151;
+      }
+      else
+      {
+        if (is_int(ansttype))
+        {
+          totree(9473);
+          ansttype = -3;
+          if (sopnd >= 0) {
+            stackoperands[sopnd] = ansttype;
+          }
+          else {
+            stack[100+sopnd] = ansttype;
+          }
+        }
+
+        if (!is_float(ansttype))
+        {
+          error(263);
+        }
+
+        if (func == -43)
+        {
+          ansttype = -1;
+          if (sopnd >= 0) {
+            stackoperands[sopnd] = ansttype;
+          }
+          else {
+            stack[100+sopnd] = ansttype;
+          }
+        }
+      }
+    }
+    totree(9500 - func);
+    mustbe(104, 262);
+  }
+  else
+  {
+    error(291);
+  }
+}
+
+void index_check()
+{
+  if (!is_int(ansttype))
+  {
+    error(227);
+  }
+}
+
+int find_field(int stype) // выдает смещение до найденного поля или ошибку
+
+{
+  int i;
+  int flag = 1;
+  int select_displ = 0;
+
+  scaner();
+  mustbe(109, 301);
+
+  for (i = 0; i < modetab[stype + 2]; i += 2) // тут хранится удвоенное n
+
+  {
+    int field_type = modetab[stype + 3 + i];
+
+    if (modetab[stype + 4 + i] == repr)
+    {
+      stackoperands[sopnd] = ansttype = field_type;
+      flag = 0;
+      break;
+    }
+    else
+    {
+      select_displ += szof(field_type);
+    }
+    // прибавляем к суммарному смещению длину поля
+
+  }
+
+  if (flag)
+  {
+    error(314);
+  }
+
+  return select_displ;
+}
+
+void selectend()
+{
+  while (next == 122)
+  {
+    anstdispl += find_field(ansttype);
+  }
+
+  totree(anstdispl);
+  if (is_array(ansttype) || is_pointer(ansttype))
+  {
+    totree(-306);
+  }
+}
+
+int Norder(int t) // вычислить размерность массива
+
+{
+  int n = 1;
+
+  while ((t = modetab[t + 1]) > 0)
+  {
+    n++;
+  }
+
+  return n;
+}
+
+void postexpr()
+{
+  int lid;
+  int leftansttyp;
+  int was_func = 0;
+
+  lid = lastid;
+  leftansttyp = ansttype;
+
+  if (next == 103) // вызов функции
+
+  {
+    int i;
+    int j;
+    int n;
+    int dn;
+    int oldinass = inass;
+
+    was_func = 1;
+    scaner();
+
+    if (!is_function(leftansttyp))
+    {
+      error(229);
+    }
+
+    n = modetab[leftansttyp + 2]; // берем количество аргументов функции
+
+
+    totree(-307);
+    totree(n);
+    j = leftansttyp + 3;
+
+    for (i = 0; i < n; i++)     // фактические параметры
+
+    {
+      int mdj = leftansttype = modetab[j];
+        // это вид формального параметра, в ansttype будет вид фактического параметра
+
+      scaner();
+
+      if (is_function(mdj))   // фактическим параметром должна быть функция, в С - это только идентификатор
+
+      {
+        if (cur != 109)
+        {
+          error(318);
+        }
+        applid();
+
+        if (identab[lastid + 2] != mdj)
+        {
+          error(287);
+        }
+        dn = identab[lastid + 3];
+
+        if (dn < 0)
+        {
+          totree(-305);
+          totree(-dn);
+        }
+        else
+        {
+          totree(-301);
+          totree(dn);
+        }
+        totree(-312);
+      }
+      else
+      {
+        if (cur == 115 && is_array(mdj))
+        {
+          actstring(), totree(-312);
+        }
+        else
+        {
+          inass = 0;
+          exprassn(1);
+          toval();
+          totree(-312);
+
+          if (mdj > 0 && mdj != ansttype)
+          {
+            error(287);
+          }
+
+          if (is_int(mdj) && is_float(ansttype))
+          {
+            error(231);
+          }
+
+          if (is_float(mdj) && is_int(ansttype))
+          {
+            insertwiden();
+          }
+          --sopnd;
+        }
+      }
+      if (i < n - 1 && scaner() != 100)
+      {
+        error(230);
+      }
+      j++;
+    }
+
+    inass = oldinass;
+    mustbe(104, 232);
+    totree(-308);
+    totree(lid);
+    ansttype = modetab[leftansttyp + 1];
+    if (sopnd >= 0) {
+      stackoperands[sopnd] = ansttype;
+    }
+    else {
+      stack[100+sopnd] = ansttype;
+    }
+    anst = 110;
+
+    if (is_struct(ansttype))
+    {
+      x -= modetab[ansttype + 1] - 1;
+    }
+  }
+
+  while (next == 105 || next == 121 || next == 122)
+  {
+    while (next == 105)  // вырезка из массива (возможно, многомерного)
+
+    {
+      int elem_type;
+
+      if (was_func)
+      {
+        error(315);
+      }
+
+      if (modetab[ansttype] != 1003)    // вырезка не из массива
+
+      {
+        error(228);
+      }
+
+      elem_type = modetab[ansttype + 1];
+
+      scaner();
+      scaner();
+
+      if (anst == 109)            // a[i]
+
+      {
+        tree[tc - 2] = -303;
+        tree[tc - 1] = anstdispl;
+      }
+      else                  // a[i][j]
+
+      {
+        totree(-304);
+      }
+
+      totree(elem_type);
+      exprval();
+      index_check();              // проверка, что индекс int или char
+
+      mustbe(106, 225);
+
+      ansttype = elem_type;
+      --sopnd;
+      if (sopnd >= 0) {
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        stack[100+sopnd] = ansttype;
+      }
+      anst = 111;
+    }
+
+    while (next == 121)
+      // это выборка поля из указателя на структуру, если после ->
+
+      // больше одной точки подряд, схлопываем в 1 select
+
+      // перед выборкой мог быть вызов функции или вырезка элемента массива
+
+    {
+      if (modetab[ansttype] != 1004 || modetab[modetab[ansttype + 1]] != 1002)
+      {
+        error(304);
+      }
+
+      if (anst == 109)
+      {
+        tree[tc - 2] = -305;
+      }
+      anst = 111;    // pointer мог быть значением функции (VAL) или, может быть,
+
+      totree(-334);  // anst уже был ADDR, т.е. адрес теперь уже всегда на верхушке стека
+
+
+      anstdispl = find_field(ansttype = modetab[ansttype + 1]);
+      selectend();
+    }
+
+    if (next == 122)
+    {
+      /*
+        int i;
+        for (i = 3800; i < 3850; ++i)
+        {
+          printf("%i) reprtab[i]= %i %c\n", i, reprtab[i], reprtab[i]);
+        }
+      */ 
+
+      if (ansttype < 0 || modetab[ansttype] != 1002)
+      {
+        error(329);
+      }
+
+      if (anst == 110)  // структура - значение функции
+
+      {
+        int len1 = szof(ansttype);
+        int sz = 0;
+
+        anstdispl = 0;
+        while (next == 122)
+        {
+          anstdispl += find_field(ansttype);
+        }
+
+        totree(9308);
+        totree(anstdispl);
+        //sz = szof(ansttype);
+
+        totree(len1);
+        //totree(szof(ansttype));
+
+        // PROBABLY AN ERROR - NOT YET SURE.
+
+        // totree(len1);
+
+      }
+      else if (anst == 109)
+      {
+        int globid;
+        if (anstdispl < 0)
+          globid = -1;
+        else
+          globid = 1;
+        
+        //int globid = anstdispl < 0 ? -1 : 1;
+
+
+        while (next == 122)
+        {
+          anstdispl += globid * find_field(ansttype);
+        }
+
+        tree[tc - 1] = anstdispl;
+      }
+      else  // ADDR
+
+      {
+        totree(-334);
+        anstdispl = 0;
+        selectend();
+      }
+    }
+  }
+
+  if (next == 9043 || next == 9044) // a++, a--
+
+  {
+    int opp;
+
+    if (!is_int(ansttype) && !is_float(ansttype))
+    {
+      error(292);
+    }
+
+    if (anst != 109 && anst != 111)
+    {
+      error(234);
+    }
+
+    if (next == 9043) 
+      opp = 9041;
+    else
+      opp = 9042;
+    //opp = (next == INC) ? POSTINC : POSTDEC;
+
+    if (anst == 111)
+    {
+      opp += 4;
+    }
+    scaner();
+    totreef(opp);
+
+    if (anst == 109)
+    {
+      totree(identab[lid + 3]);
+    }
+    anst = 110;
+  }
+}
+
+void unarexpr()
+{
+  int opp = cur;
+
+  if (cur == 9052 || cur == 9053 || cur == 9037 || cur == 9038 || cur == 9026 || cur == 9039 || cur == 9043 ||
+    cur == 9044)
+  {
+    if (cur == 9043 || cur == 9044)
+    {
+      scaner();
+      unarexpr();
+
+      if (anst != 109 && anst != 111)
+      {
+        error(234);
+      }
+
+      if (anst == 111)
+      {
+        opp += 4;
+      }
+      totreef(opp);
+
+      if (anst == 109)
+      {
+        totree(identab[lastid + 3]);
+      }
+      anst = 110;
+    }
+    else
+    {
+      scaner();
+      unarexpr();
+
+      if (opp == 9026)
+      {
+        if (anst == 110)
+        {
+          error(235);
+        }
+
+        if (anst == 109)
+        {
+          tree[tc - 2] = -333;  // &a
+
+        }
+
+        ansttype = newdecl(1004, ansttype);
+        if (sopnd >= 0) {
+          stackoperands[sopnd] = ansttype;
+        }
+        else {
+          stack[100+sopnd] = ansttype;
+        }
+        anst = 110;
+      }
+      else if (opp == 9039)
+      {
+        if (!is_pointer(ansttype))
+        {
+          error(273);
+        }
+
+        if (anst == 109)
+        {
+          tree[tc - 2] = -305;   // *p
+
+        }
+
+        stackoperands[sopnd] = ansttype = modetab[ansttype + 1];
+        anst = 111;
+      }
+      else
+      {
+        toval();
+
+        if ((opp == 9052 || opp == 9053) && ansttype == -3)
+        {
+          error(245);
+        }
+        else if (opp == 9038)
+        {
+          totreef(9049);
+        }
+        else if (opp == 9037);
+        else
+        {
+          totree(opp);
+        }
+        anst = 110;
+      }
+    }
+  }
+  else
+  {
+    primaryexpr();
+  }
+  postexpr();
+  if (sopnd >= 0) {
+    stackoperands[sopnd] = ansttype;
+  }
+  else {
+    stack[100+sopnd] = ansttype;
+  }
+}
+
+void exprinbrkts(int er)
+{
+  mustbe(103, er);
+  scaner();
+  exprval();
+  mustbe(104, er);
+}
+
+void exprassninbrkts(int er)
+{
+  mustbe(103, er);
+  scaner();
+  exprassnval();
+  mustbe(104, er);
+}
+
+int prio(int opp)  // возвращает 0, если не операция
+
+{
+  if (opp == 9030)
+    return 1;
+  else if (opp == 9029)
+    return 2;
+  else if (opp == 9028)
+    return 3;
+  else if (opp == 9027)
+    return 4;
+  else if (opp == 9026)
+    return 5;
+  else if (opp == 9031)
+    return 6;
+  else if (opp == 9032)
+    return 6;
+  else if (opp == 9033)
+    return 7;
+  else if (opp == 9034)
+    return 7;
+  else if (opp == 9035)
+    return 7;
+  else if (opp == 9036)
+    return 7;
+  else if (opp == 9024)
+    return 8;
+  else if (opp == 9025)
+    return 8;
+  else if (opp == 9037)
+    return 9;
+  else if (opp == 9038)
+    return 9;
+  else if (opp == 9039)
+    return 10;
+  else if (opp == 9040)
+    return 10;
+  else if (opp == 9023)
+    return 10;
+  else 
+    return 0;
+  // return opp == LOGOR
+
+  //       ? 1
+
+  //       : opp == LOGAND
+
+  //         ? 2
+
+  //         : opp == LOR
+
+  //           ? 3
+
+  //           : opp == LEXOR
+
+  //             ? 4
+
+  //             : opp == LAND
+
+  //               ? 5
+
+  //               : opp == EQEQ
+
+  //                 ? 6
+
+  //                 : opp == NOTEQ
+
+  //                   ? 6
+
+  //                   : opp == LLT
+
+  //                     ? 7
+
+  //                     : opp == LGT
+
+  //                       ? 7
+
+  //                       : opp == LLE
+
+  //                         ? 7
+
+  //                         : opp == LGE
+
+  //                           ? 7
+
+  //                           : opp == LSHL
+
+  //                             ? 8
+
+  //                             : opp == LSHR
+
+  //                               ? 8
+
+  //                               : opp == LPLUS
+
+  //                                 ? 9
+
+  //                                 : opp == LMINUS
+
+  //                                   ? 9
+
+  //                                   : opp == LMULT
+
+  //                                     ? 10
+
+  //                                     : opp == LDIV
+
+  //                                       ? 10
+
+  //                                       : opp == LREM
+
+  //                                         ? 10
+
+  //                                         : 0;
+
+}
+
+void subexpr()
+{
+  int p;
+  int oldsp = sp;
+  int wasop = 0;
+  int ad = 0;
+
+  while ((p = prio(next)))
+  {
+    wasop = 1;
+    toval();
+
+    while (sp > oldsp && stack[sp - 1] >= p)
+    {
+      binop(--sp);
+    }
+
+    if (p <= 2)
+    {
+      if (p == 1)
+        totree(9480);
+      else
+        totree(9479);
+      //totree(p == 1 ? ADLOGOR : ADLOGAND);
+
+      ad = tc++;
+    }
+
+    stack[sp] = p;
+    stacklog[sp] = ad;
+    stackop[sp++] = next;
+    scaner();
+    scaner();
+    unarexpr();
+  }
+
+  if (wasop)
+  {
+    toval();
+  }
+
+  while (sp > oldsp)
+  {
+    //sp = sp - 1;
+
+    binop(--sp);
+  }
+}
+
+int intopassn(int next2)
+{
+  return next2 == 9001 || next2 == 9002 || next2 == 9003 || next2 == 9004 || next2 == 9005 || next2 == 9006;
+}
+
+int opassn()
+{
+  if (next == 9007 || next == 9010 || next == 9011 || next == 9008 || next == 9009 || intopassn(next)) {
+    op = next;
+    //printf("Debgu: i %i\n", op);
+
+    //printid(op);
+
+    return op;
+  } else
+    return 0;
+  // return (next == ASS || next == MULTASS || next == DIVASS || next == PLUSASS || next == MINUSASS || intopassn(next))
+
+  //       ? op = next
+
+  //       : 0;
+
+}
+
+void condexpr()
+{
+  int globtype = 0;
+  int adif = 0;
+  int r;
+
+  subexpr();  // logORexpr();
+
+  if (next == 101)
+  {
+    while (next == 101)
+    {
+      toval();
+
+      if (!is_int(ansttype))
+      {
+        error(275);
+      }
+
+      totree(-313);
+      scaner();
+      scaner();
+      sopnd--;
+      exprval();  // then
+
+
+      if (!globtype)
+      {
+        globtype = ansttype;
+      }
+      sopnd--;
+
+      if (is_float(ansttype))
+      {
+        globtype = -3;
+      }
+      else
+      {
+        tree[tc] = adif;
+        adif = tc++;
+      }
+
+      mustbe(102, 236);
+      scaner();
+      unarexpr();
+      subexpr();  // logORexpr();   else or elif
+
+    }
+
+    toval();
+    totree(-312);
+
+    if (is_float(ansttype))
+    {
+      globtype = -3;
+    }
+    else
+    {
+      tree[tc] = adif;
+      adif = tc++;
+    }
+
+    while (adif != 0)
+    {
+      r = tree[adif];
+      tree[adif] = -312;
+      if (is_float(globtype))
+        tree[adif - 1] = 9473;
+      else
+        tree[adif - 1] = 9453;
+
+      //tree[adif - 1] = is_float(globtype) ? WIDEN : NOP;
+
+      adif = r;
+    }
+    ansttype = globtype;
+    if (sopnd >= 0) {
+      stackoperands[sopnd] = ansttype;
+    }
+    else {
+      stack[100+sopnd] = ansttype;
+    }
+  }
+  else
+  {
+    if (sopnd >= 0) {
+      stackoperands[sopnd] = ansttype;
+    }
+    else {
+      stack[100+sopnd] = ansttype;
+    }
+  }
+}
+
+void inition(int decl_type)
+{
+  if (decl_type < 0 || is_pointer(decl_type) ||         // Обработка для базовых типов, указателей
+
+    (is_array(decl_type) && modetab[decl_type + 1] == -2)) // или строк
+
+  {
+    exprassn(1);
+    toval();
+    totree(-312);
+    // съедаем выражение, его значение будет на стеке
+
+    sopnd--;
+
+    if (is_int(decl_type) && is_float(ansttype))
+    {
+      error(253);
+    }
+
+    if (is_float(decl_type) && is_int(ansttype))
+    {
+      insertwiden();
+    }
+    else if (decl_type != ansttype)
+    {
+      error(306);
+    }
+  }
+  else if (cur == 115)
+  {
+    struct_init(decl_type);
+  }
+  else
+  {
+    error(311);
+  }
+}
+
+void struct_init(int decl_type) // сейчас modetab[decl_type] равен MSTRUCT
+
+{
+  int next_field = decl_type + 3;
+  int i;
+  int nf = modetab[decl_type + 2] / 2;
+
+  if (cur != 115)
+  {
+    error(382);
+  }
+  totree(-343);
+  totree(nf);
+
+  for (i = 0; i < nf; i++)
+  {
+    scaner();
+    inition(modetab[next_field]);
+    next_field += 2;
+
+    if (i != nf - 1)
+    {
+      if (next == 100)  // поля инициализации идут через запятую, заканчиваются }
+
+      {
+        scaner();
+      }
+      else
+      {
+        error(223);
+      }
+    }
+  }
+
+  if (next == 116)
+  {
+    totree(-312);
+  }
+  else
+  {
+    error(317);
+  }
+
+  scaner();
+  leftansttype = decl_type;
+}
+
+
+void exprassnvoid()
+{
+  int t;
+  int tt;
+
+  if (tree[tc - 2] < 9000)
+    t = tc - 3; 
+  else
+    t = tc - 2;
+  //int t = tree[tc - 2] < 9000 ? tc - 3 : tc - 2;
+
+  tt = tree[t];
+
+  if ((tt >= 9007 && tt <= 9022) || (tt >= 9041 && tt <= 9048) || (tt >= 9057 && tt <= 9072) ||
+    (tt >= 9091 && tt <= 9098))
+  {
+    tree[t] += 200;
+  }
+  --sopnd;
+}
+
+void exprassn(int level)
+{
+  int leftanst;
+  int leftanstdispl;
+  int ltype;
+  int rtype;
+  int lnext;
+
+  if (cur == 115)
+  {
+    if (is_struct(leftansttype))
+    {
+      struct_init(leftansttype);
+    }
+    /*
+      else if (is_array(leftansttype))  //пока в RuC присваивать массивы нельзя
+      {
+        array_init(leftansttype);
+      }
+    */ 
+    else
+    {
+      error(331);
+    }
+    
+    ansttype = leftansttype;
+    ++sopnd;
+    if (sopnd >= 0) {
+      stackoperands[sopnd] = ansttype;
+    }
+    else {
+      stack[100+sopnd] = ansttype;
+    }
+    anst = 110;
+  }
+  else
+  {
+    unarexpr();
+  }
+
+  leftanst = anst;
+  leftanstdispl = anstdispl;
+  leftansttype = ansttype;
+  if (opassn())
+  {
+    int opp = op;
+
+    lnext = next;
+    inass = 1;
+    scaner();
+    scaner();
+    exprassn(level + 1);
+    inass = 0;
+
+    if (leftanst == 110)
+    {
+      error(319);
+    }
+    if (sopnd >= 0) {
+      rtype = stackoperands[sopnd];
+    }
+    else {
+      rtype = stack[100 + sopnd];
+    } // снимаем типы операндов со стека
+
+    sopnd--;
+    if (sopnd >= 0) {
+      ltype = stackoperands[sopnd];
+    }
+    else {
+      ltype = stack[100 + sopnd];
+    } 
+
+    if (intopassn(lnext) && (is_float(ltype) || is_float(rtype)))
+    {
+      error(245);
+    }
+
+    if (is_array(ltype))      // присваивать массив в массив в си нельзя
+
+    {
+      error(308);
+    }
+
+    if (is_struct(ltype))     // присваивание в структуру
+
+    {
+      if (ltype != rtype)     // типы должны быть равны
+
+      {
+        error(307);
+      }
+
+      if (opp != 9007)       // в структуру можно присваивать только с помощью =
+
+      {
+        error(309);
+      }
+
+      if (anst == 110)
+      {
+        if (leftanst == 109)
+          opp = 9306 ;
+        else 
+          opp = 9307 ;
+        //opp = leftanst == IDENT ? COPY0STASS : COPY1STASS;
+
+      }
+      else
+      {
+        if (leftanst == 109)
+        {
+          if (anst == 109)
+            opp = 9300;
+          else
+            opp = 9301;
+        }
+        else {
+          if (anst == 109)
+            opp = 9302;
+          else
+            opp = 9303;
+        }
+        //opp = leftanst == IDENT ? anst == IDENT ? COPY00 : COPY01 : anst == IDENT ? COPY10 : COPY11;
+
+      }
+      totree(opp);
+
+      if (leftanst == 109)
+      {
+        totree(leftanstdispl);  // displleft
+
+      }
+
+      if (anst == 109)
+      {
+        totree(anstdispl);    // displright
+
+      }
+      totree(modetab[ltype + 1]); // длина
+
+      anst = leftanst;
+      anstdispl = leftanstdispl;
+    }
+    else  // оба операнда базового типа или указатели
+
+    {
+      if (is_pointer(ltype) && opp != 9007)  // в указатель можно присваивать только с помощью =
+
+      {
+        error(309);
+      }
+
+      if (is_int(ltype) && is_float(rtype))
+      {
+        error(246);
+      }
+
+      toval();
+      if (is_int(rtype) && is_float(ltype))
+      {
+        totree(9473);
+        ansttype = -3;
+      }
+
+      if (is_pointer(ltype) && is_pointer(rtype) && ltype != rtype) // проверка нужна только для указателей
+
+      {
+        error(307);
+      }
+
+      if (leftanst == 111)
+      {
+        opp += 11;
+      }
+      totreef(opp);
+
+      if (leftanst == 109)
+      {
+        totree(anstdispl = leftanstdispl);
+      }
+      anst = 110;
+    }
+    ansttype = ltype; // тип результата - на стек
+
+    if (sopnd >= 0) {
+      stackoperands[sopnd] = ansttype;
+    }
+    else {
+      stack[100+sopnd] = ansttype;
+    }
+  }
+  else
+  {
+    condexpr(); // condexpr учитывает тот факт, что начало выражения в виде unarexpr уже выкушано
+
+  }
+}
+
+void expr(int level)
+{
+  exprassn(level);
+
+  while (next == 100)
+  {
+    exprassnvoid();
+    sopnd--;
+    scaner();
+    scaner();
+    exprassn(level);
+  }
+
+  if (level == 0)
+  {
+    totree(-312);
+  }
+}
+
+void exprval()
+{
+  expr(1);
+  toval();
+  totree(-312);
+}
+
+void exprassnval()
+{
+  exprassn(1);
+  toval();
+  totree(-312);
+}
+
+void array_init(int decl_type)  // сейчас modetab[decl_type] равен MARRAY
+
+{
+  int ad;
+  int all = 0;
+
+  if (is_array(decl_type))
+  {
+    if (cur == 107)
+    {
+      if (onlystrings == 0)
+      {
+        error(356);
+      }
+
+      if (onlystrings == 2)
+      {
+        onlystrings = 1;
+      }
+
+      primaryexpr();
+      totree(-312);
+    }
+    else if (cur == 115)
+    {
+      totree(-342);
+      ad = tc++;
+
+      do
+      {
+        scaner();
+        all++;
+        array_init(modetab[decl_type + 1]);
+      } while (scaner() == 100);
+
+      if (cur == 116)
+      {
+        tree[ad] = all;
+        totree(-312);
+      }
+      else
+      {
+        error(317);
+      }
+    }
+    else
+    {
+      error(222);
+    }
+  }
+  else if (cur == 115)
+  {
+    if (is_struct(decl_type))
+    {
+      struct_init(decl_type);
+    }
+    else
+    {
+      error(355);
+    }
+  }
+  else if (onlystrings == 1)
+  {
+    error(356);
+  }
+  else
+  {
+    inition(decl_type);
+    onlystrings = 0;
+  }
+}
+
+int arrdef(int t) // вызывается при описании массивов и структур из массивов сразу после idorpnt
+
+{
+  arrdim = 0;
+  usual = 1;    // описание массива без пустых границ
+
+  if (is_pointer(t))
+  {
+    error(320);
+  }
+
+  while (next == 105)  // это определение массива (может быть многомерным)
+
+  {
+    arrdim++;
+    scaner();
+
+    if (next == 106)
+    {
+      scaner();
+      if (next == 105) // int a[][]={{1,2,3}, {4,5,6}} - нельзя;
+
+      {
+        error(324);  // границы определять по инициализации можно только по последнему изм.
+
+      }
+      usual = 0;
+    }
+    else
+    {
+      scaner();
+      unarexpr();
+      condexpr();
+      toval();
+
+      if (!is_int(ansttype))
+      {
+        error(321);
+      }
+
+      totree(-312);
+      sopnd--;
+      mustbe(106, 202);
+    }
+    t = newdecl(1003, t);   // Меняем тип в identtab (увеличиваем размерность массива)
+
+  }
+  return t;
+}
+
+
+void decl_id(int decl_type)
+{
+  // вызывается из block и extdecl, только эта процедура реально отводит память
+
+  // если встретятся массивы (прямо или в структурах), их размеры уже будут в стеке
+
+
+  int oldid = toidentab(0, decl_type);
+  int elem_len;
+  int elem_type;
+  int all;  // all - место в дереве, где будет общее количество выражений в инициализации, для массивов - только
+
+        // признак (1) наличия инициализации
+
+  int adN;
+
+  usual = 1;
+  arrdim = 0; // arrdim - размерность (0-скаляр), д.б. столько выражений-границ
+
+  elem_type = decl_type;
+
+  if (next == 105) // это определение массива (может быть многомерным)
+
+  {
+    totree(-338);
+    adN = tc++;
+    elem_len = szof(decl_type);
+    decl_type = identab[oldid + 2] = arrdef(decl_type); // Меняем тип (увеличиваем размерность массива)
+
+    tree[adN] = arrdim;
+
+    if (!usual && next != 9007)
+    {
+      error(354);
+    }
+  }
+
+  totree(-310);
+  totree(identab[oldid + 3]);                   // displ
+
+  totree(elem_type);                        // elem_type
+
+  totree(arrdim);                         // N
+
+  tree[all = tc++] = 0;                     // all
+
+  if (is_pointer(decl_type))
+    tree[tc++] = 0; // proc
+
+  else
+    tree[tc++] = was_struct_with_arr; // proc
+
+  // tree[tc++] = is_pointer(decl_type) ? 0 : was_struct_with_arr; // proc
+
+  totree(usual);                          // usual
+
+  totree(0);                            // массив не в структуре
+
+
+  if (next == 9007)
+  {
+    scaner();
+    scaner();
+    tree[all] = szof(decl_type);
+
+    if (is_array(decl_type))      // инициализация массива
+
+    {
+      onlystrings = 2;
+
+      if (!usual)
+      {
+        tree[adN]--;        // это уменьшение N в Declarr
+
+      }
+
+      array_init(decl_type);
+
+      if (onlystrings == 1)
+      {
+        tree[all + 2] = usual + 2;  // только из строк 2 - без границ, 3 - с границами
+
+      }
+    }
+    else
+    {
+      inition(decl_type);
+    }
+  }
+}
+
+void statement()
+{
+  int flagsemicol = 1;
+  int oldwasdefault = wasdefault;
+  int oldinswitch = inswitch;
+  int oldinloop = inloop;
+
+  wasdefault = 0;
+  scaner();
+
+  if ((is_int(cur) || is_float(cur) || cur == -6 || cur == -14) && blockflag)
+  {
+    error(269);
+  }
+
+  if (cur == 115)
+  {
+    flagsemicol = 0;
+    block(1);
+  }
+  else if (cur == -28)
+  {
+    totree(9528);
+    flagsemicol = 0;
+    block(2);
+    totree(9562);
+  }
+  else if (cur == 117)
+  {
+    totree(9453);
+    flagsemicol = 0;
+  }
+  else if (cur == 109 && next == 102)
+  {
+    int _id;
+    int i;
+    int flag = 1;
+
+    flagsemicol = 0;
+    totree(-328);
+
+    for (i = 0; flag && i < pgotost - 1; i += 2)
+    {
+      flag = identab[gotost[i] + 1] != repr;
+    }
+
+    if (flag)
+    {
+      _id = toidentab(1, 0);
+      totree(_id);
+      gotost[pgotost++] = id;     // это определение метки, если она встретилась до переходов на нее
+
+      gotost[pgotost++] = -line;
+    }
+    else
+    {
+      _id = gotost[i - 2];
+      repr = identab[id + 1];
+
+      if (gotost[i - 1] < 0)
+      {
+        error(295);
+      }
+      totree(_id);
+    }
+    identab[id + 2] = 1;
+
+    scaner();
+    statement();
+  }
+  else
+  {
+    blockflag = 1;
+
+    switch (cur)
+    {
+      case -24:
+      {
+        exprassninbrkts(328);
+        tc--;
+        totree(-329);
+        totree(ansttype);
+        totree(-312);
+
+        if (is_pointer(ansttype))
+        {
+          error(299);
+        }
+        sopnd--;
+      }
+        break;
+      case -23:
+      {
+        int _foo1 = 1;
+        mustbe(103, 249);
+        do
+        {       
+          mustbe(109, 251);
+          lastid = reprtab[repr + 1];
+
+          if (lastid == 1)
+          {
+            error(224);
+          }
+
+          totree(-330);
+          totree(lastid);
+
+          if (next == 100)
+            scaner();
+          else
+            _foo1 = 0;
+        } while (_foo1);
+        //} while (next == COMMA ? scaner(), 1 : 0);
+
+        mustbe(104, 250);
+      }
+        break;
+
+      case -25:
+      {
+        int formatstr[300000];
+        int formattypes[20];
+        int placeholders[20];
+        int paramnum = 0;
+        int sumsize = 0;
+        int i = 0;
+        int fnum;
+
+        mustbe(103, 343);
+        if (scaner() != 107) //выкушиваем форматную строку
+
+        {
+          error(345);
+        }
+
+        for (i = 0; i < num; i++)
+        {
+          formatstr[i] = lexstr[i];
+        }
+        formatstr[num] = 0;
+
+        paramnum = evaluate_params(fnum = num, formatstr, formattypes, placeholders);
+
+        for (i = 0; scaner() == 100; i++)
+        {
+          if (i >= paramnum)
+          {
+            error(347);
+          }
+
+          scaner();
+
+          exprassn(1);
+          toval();
+          totree(-312);
+
+          if (formattypes[i] == -3 && ansttype == -1)
+          {
+            insertwiden();
+          }
+          else if (formattypes[i] != ansttype)
+          {
+            bad_printf_placeholder = placeholders[i];
+            error(346);
+          }
+
+          sumsize += szof(formattypes[i]);
+          --sopnd;
+        }
+
+        if (cur != 104)
+        {
+          error(344);
+        }
+
+        if (i != paramnum)
+        {
+          error(347);
+        }
+
+        totree(-302);
+        totree(fnum);
+
+        for (i = 0; i < fnum; i++)
+        {
+          totree(formatstr[i]);
+        }
+        totree(-312);
+
+        totree(-331);
+        totree(sumsize);
+      }
+        break;
+
+      case -27:
+      {
+        int _foo2 = 1;
+        mustbe(103, 249);
+        do
+        {
+          mustbe(109, 251);
+          lastid = reprtab[repr + 1];
+
+          if (lastid == 1)
+          {
+            error(224);
+          }
+
+          totree(-332);
+          totree(lastid);
+
+          if (next == 100)
+            scaner();
+          else
+            _foo2 = 0;
+
+        } while (_foo2);
+        //} while (next == COMMA ? scaner(), 1 : 0);
+
+        mustbe(104, 250);
+      }
+        break;
+      case -93:
+      {
+        int formatstr[300000];
+        int formattypes[20];
+        int placeholders[20];
+        int paramnum = 0;
+        int sumsize = 0;
+        int i = 0;
+        int fnum;
+
+        mustbe(103, 343);
+        mustbeint();
+        mustbe(100, 364);
+
+        if (scaner() != 107) //выкушиваем форматную строку
+
+        {
+          error(345);
+        }
+
+        for (i = 0; i < num; i++)
+        {
+          formatstr[i] = lexstr[i];
+        }
+        formatstr[num] = 0;
+
+        paramnum = evaluate_params(fnum = num, formatstr, formattypes, placeholders);
+
+        for (i = 0; scaner() == 100; i++)
+        {
+          if (i >= paramnum)
+          {
+            error(347);
+          }
+
+          scaner();
+
+          exprassn(1);
+          toval();
+          totree(-312);
+
+          if (formattypes[i] == -3 && ansttype == -1)
+          {
+            insertwiden();
+          }
+          else if (formattypes[i] != ansttype)
+          {
+            bad_printf_placeholder = placeholders[i];
+            error(346);
+          }
+
+          sumsize += szof(formattypes[i]);
+          --sopnd;
+        }
+
+        if (cur != 104)
+        {
+          error(344);
+        }
+ 
+        if (i != paramnum)
+        {
+          error(347);
+        }
+
+        totree(-302);
+        totree(fnum);
+
+        for (i = 0; i < fnum; i++)
+        {
+          totree(formatstr[i]);
+        }
+        totree(-312);
+
+        totree(-344);
+        totree(sumsize);
+      }
+        break;
+      case -7:
+      {
+        if (!(inloop || inswitch))
+        {
+          error(289);
+        }
+        totree(-323);
+      }
+        break;
+      case -8:
+      {
+        if (!inswitch)
+        {
+          error(288);
+        }
+
+        if (wasdefault)
+        {
+          error(240);
+        }
+
+        totree(-321);
+        scaner();
+        unarexpr();
+        condexpr();
+        toval();
+        totree(-312);
+
+        if (ansttype == -3)
+        {
+          error(252);
+        }
+
+        sopnd--;
+        mustbe(102, 239);
+        flagsemicol = 0;
+        statement();
+      }
+        break;
+      case -9:
+      {
+        if (!inloop)
+        {
+          error(290);
+        }
+        totree(-324);
+      }
+        break;
+      case -10:
+      {
+        if (!inswitch)
+        {
+          error(288);
+        }
+
+        mustbe(102, 239);
+        wasdefault = 1;
+        flagsemicol = 0;
+        totree(-322);
+        statement();
+      }
+        break;
+      case -11:
+      {
+        inloop = 1;
+        totree(-318);
+        statement();
+
+        if (next == -22)
+        {
+          scaner();
+          exprinbrkts(220);
+          sopnd--;
+        }
+        else
+        {
+          error(218);
+        }
+      }
+        break;
+      case -16:
+      {
+        int fromref;
+        int condref;
+        int incrref;
+        int stmtref;
+
+        mustbe(103, 242);
+        totree(-319);
+        fromref = tc++;
+        condref = tc++;
+        incrref = tc++;
+        stmtref = tc++;
+
+        if (scaner() == 117)  // init
+
+        {
+          tree[fromref] = 0;
+        }
+        else
+        {
+          tree[fromref] = tc;
+          expr(0);
+          exprassnvoid();
+          mustbe(117, 243);
+        }
+
+        if (scaner() == 117)  // cond
+
+        {
+          tree[condref] = 0;
+        }
+        else
+        {
+          tree[condref] = tc;
+          exprval();
+          sopnd--;
+          mustbe(117, 243);
+          sopnd--;
+        }
+
+        if (scaner() == 104)  // incr
+
+        {
+          tree[incrref] = 0;
+        }
+        else
+        {
+          tree[incrref] = tc;
+          expr(0);
+          exprassnvoid();
+          mustbe(104, 244);
+        }
+
+        flagsemicol = 0;
+        tree[stmtref] = tc;
+        inloop = 1;
+        statement();
+      }
+        break;
+      case -17:
+      {
+        int fix = 1;
+        int i;
+        int flag = 1;
+
+        mustbe(109, 241);
+        totree(-327);
+
+        for (i = 0; flag && i < pgotost - 1; i += 2)
+        {
+          flag = identab[gotost[i] + 1] != repr;
+        }
+
+        if (flag)
+        {
+          // первый раз встретился переход на метку, которой не было, в этом случае
+
+          // ссылка на identtab, стоящая после TGoto, будет отрицательной
+
+          int __tmp = -toidentab(1, 0);
+          totree(__tmp);
+          gotost[pgotost++] = lastid;
+        }
+        else
+        {
+          int _id = gotost[i - 2];
+
+          if (gotost[_id + 1] < 0) // метка уже была
+
+          {
+            totree(_id);
+            fix = 0;
+          } else {
+            totree(gotost[pgotost++] = _id);
+          }
+        }
+
+        if (fix == 1)
+          gotost[pgotost++] = line;
+      }
+        break;
+      case -18:
+      {
+        int elseref;
+
+        totree(-316);
+        elseref = tc++;
+        flagsemicol = 0;
+        exprinbrkts(220);
+        sopnd--;
+        statement();
+
+        if (next == -12)
+        {
+          scaner();
+          tree[elseref] = tc;
+          statement();
+        }
+        else
+        {
+          tree[elseref] = 0;
+        }
+      }
+        break;
+      case -19:
+      {
+        int ftype = modetab[functype + 1];
+
+        wasret = 1;
+        if (next == 117)
+        {
+          if (ftype != -6)
+          {
+            error(264);
+          }
+          totree(-325);
+        }
+        else
+        {
+          if (ftype == -150)
+          {
+            flagsemicol = 0;
+          }
+          else
+          {
+            int szof_ftype = 0;
+            if (ftype == -6)
+            {
+              error(266);
+            }
+
+            totree(-326);
+            szof_ftype = szof(ftype);
+            totree(szof_ftype);
+            scaner();
+            expr(1);
+            toval();
+            sopnd--;
+
+            if (ftype == -3 && ansttype == -1)
+            {
+              totree(9473);
+            }
+            else if (ftype != ansttype)
+            {
+              error(265);
+            }
+            totree(-312);
+          }
+        }
+      }
+        break;
+      case -21:
+      {
+        totree(-320);
+        exprinbrkts(220);
+
+        if (ansttype != -2 && ansttype != -1)
+        {
+          error(252);
+        }
+
+        sopnd--;
+        scaner();
+        inswitch = 1;
+        block(-1);
+        flagsemicol = 0;
+        wasdefault = 0;
+      }
+        break;
+      case -22:
+      {
+        inloop = 1;
+        totree(-317);
+        flagsemicol = 0;
+        exprinbrkts(220);
+        sopnd--;
+        statement();
+      }
+        break;
+      default:
+      {
+        expr(0);
+        exprassnvoid();
+      }
+    }
+  }
+
+  if (flagsemicol && scaner() != 117)
+  {
+    error(219);
+  }
+
+  wasdefault = oldwasdefault;
+  inswitch = oldinswitch;
+  inloop = oldinloop;
+}
+
+int idorpnt(int e, int t)
+{
+  if (next == 9039)
+  {
+    scaner();
+    if (t == -6)
+      t = -150;
+    else
+      t = newdecl(1004, t);
+    //t = t == LVOID ? LVOIDASTER : newdecl(MPOINT, t);
+
+  }
+
+  mustbe(109, e);
+  return t;
+}
+
+int struct_decl_list()
+{
+  int field_count = 0;
+  int i;
+  int t;
+  int elem_type;
+  int curdispl = 0;
+  int wasarr = 0;
+  int tstrbeg;
+  int loc_modetab[100];
+  int locmd = 3;
+
+  loc_modetab[0] = 1002;
+  tstrbeg = tc;
+  totree(-336);
+  tree[tc++] = 0;   // тут будет номер иниц процедуры
+
+
+  scaner();
+  scaner();
+
+  do
+  {
+    int fieldrepr;
+
+    int __type = gettype();
+
+    t = elem_type = idorpnt(323, __type);
+    fieldrepr = repr;
+
+    if (next == 105)
+    {
+      int adN;
+      int all;
+
+      totree(-338);
+      adN = tc++;
+      t = arrdef(elem_type);  // Меняем тип (увеличиваем размерность массива)
+
+      tree[adN] = arrdim;
+
+      totree(-310);
+      totree(curdispl);
+      totree(elem_type);
+      totree(arrdim);           // N
+
+      tree[all = tc++] = 0;       // all
+
+      tree[tc++] = was_struct_with_arr; // proc
+
+      totree(usual);            // usual
+
+      totree(1);              // признак, что массив в структуре
+
+      wasarr = 1;
+
+      if (next == 9007)
+      {
+        scaner();
+        scaner();
+
+        if (is_array(t))    // инициализация массива
+
+        {
+          onlystrings = 2;
+          tree[all] = 1;
+
+          if (!usual)
+          {
+            tree[adN]--;  // это уменьшение N в Declarr
+
+          }
+          array_init(t);
+
+          if (onlystrings == 1)
+          {
+            tree[all + 2] = usual + 2;  // только из строк 2 - без границ, 3 - с границами
+
+          }
+        }
+        else
+        {
+          /*
+            structdispl = identab[oldid+3];
+            tree[all] = inition(t);
+          */ 
+        }
+      }   // конец ASS
+
+    }     // конец LEFTSQBR
+
+
+    loc_modetab[locmd++] = t;
+    loc_modetab[locmd++] = fieldrepr;
+    field_count++;
+    curdispl += szof(t);
+
+    if (scaner() != 117)
+    {
+      error(322);
+    }
+  } while (scaner() != 116);
+
+  if (wasarr)
+  {
+    totree(-337);
+    totree(tstrbeg);
+    tree[tstrbeg + 1] = was_struct_with_arr = procd++;
+  }
+  else
+  {
+    tree[tstrbeg] = 9453;
+    tree[tstrbeg + 1] = 9453;
+  }
+
+  loc_modetab[1] = curdispl;      // тут длина структуры
+
+  loc_modetab[2] = field_count * 2;
+
+  modetab[md] = startmode;
+  startmode = md++;
+  for (i = 0; i < locmd; i++)
+  {
+    modetab[md++] = loc_modetab[i];
+  }
+
+  return check_duplicates();
+}
+
+int gettype()
+{
+  // gettype() выедает тип (кроме верхних массивов и указателей)
+
+  // при этом, если такого типа нет в modetab, тип туда заносится;
+
+  // возвращает отрицательное число(базовый тип), положительное (ссылка на modetab) или 0, если типа не было
+
+
+  was_struct_with_arr = 0;
+  if (is_int(type = cur) || is_float(type) || type == -6)
+  {
+    if (cur == -4)
+      return -1;
+    else if (cur == -5)
+      return -3;
+    else
+      return type;
+    //return (cur == LLONG ? LINT : cur == LDOUBLE ? LFLOAT : type);
+
+  }
+  else if (type == -14)
+  {
+    if (next == 115)    // struct {
+
+    {
+      return (struct_decl_list());
+    }
+    else if (next == 109)
+    {
+      int _l = reprtab[repr + 1];
+      scaner();
+      if (next == 115)  // struct key {
+
+      {
+        // если такое описание уже было, то это ошибка - повторное описание
+
+        int i;
+        int lid;
+
+        wasstructdef = 1; // это определение типа (может быть, без описания переменных)
+
+        toidentab(1000, 0);
+        lid = lastid;
+        identab[lid + 2] = struct_decl_list();
+        identab[lid + 3] = 1000 + was_struct_with_arr;
+
+        return identab[lid + 2];
+      }
+      else        // struct key это применение типа
+
+      {
+        if (_l == 1)
+        {
+          error(224);
+        }
+
+        was_struct_with_arr = identab[_l + 3] - 1000;
+        return (identab[_l + 2]);
+      }
+    }
+    else
+    {
+      error(300);
+    }
+  }
+  else if (cur == 109)
+  {
+    applid();
+
+    if (identab[lastid + 3] < 1000)
+    {
+      error(325);
+    }
+
+    was_struct_with_arr = identab[lastid + 3] - 1000;
+    return identab[lastid + 2];
+  }
+  else
+  {
+    error(326);
+  }
+  return 0;
+}
+
+void block(int b)
+{
+  // если   b ==  1  - то это просто блок,
+
+  //        b ==  2  - блок нити,
+
+  //        b == -1  - блок в switch,
+
+  // иначе (b ==  0) - это блок функции
+
+
+  int oldinswitch = inswitch;
+  int notended = 1;
+  int i;
+  int olddispl;
+  int oldlg = lg;
+  int _firstdecl;
+
+  inswitch = b < 0;
+  totree(-314);
+
+  if (b)
+  {
+    olddispl = displ;
+    curid = id;
+  }
+  blockflag = 0;
+
+  while (is_int(next) || is_float(next) || next == -14 || next == -6)
+  {
+    int repeat = 1;
+
+    scaner();
+    _firstdecl = gettype();
+
+    if (wasstructdef && next == 117)
+    {
+      scaner();
+      continue;
+    }
+
+    do
+    {
+      int _idorpnt = idorpnt(201, _firstdecl);
+      decl_id(_idorpnt);
+
+      if (next == 100)
+      {
+        scaner();
+      }
+      else if (next == 117)
+      {
+        scaner();
+        repeat = 0;
+      }
+      else
+      {
+        error(212);
+      }
+    } while (repeat);
+  }
+
+  // кончились описания, пошли операторы до }
+
+
+  do
+  {
+    if (b == 2 && next == -62 || b != 2 && next == 116)
+    //if (b == 2 ? next == _TEXIT : next == END)
+
+    {
+      scaner();
+      notended = 0;
+    }
+    else
+    {
+      statement();
+    }
+  } while (notended);
+
+  if (b)
+  {
+    for (i = id - 4; i >= curid; i -= 4)
+    {
+      reprtab[identab[i + 1] + 1] = identab[i];
+    }
+    displ = olddispl;
+  }
+  inswitch = oldinswitch;
+  lg = oldlg;
+  totree(-315);
+}
+
+void function_definition()
+{
+  int fn = identab[lastid + 3];
+  int i;
+  int pred;
+  int oldrepr = repr;
+  int ftype;
+  int n;
+  int fid = lastid;
+  int olddispl = displ;
+
+  pgotost = 0;
+  functype = identab[lastid + 2];
+  ftype = modetab[functype + 1];
+  n = modetab[functype + 2];
+  wasret = 0;
+  displ = 3;
+  maxdispl = 3;
+  lg = 1;
+
+  if ((pred = identab[lastid]) > 1)     // был прототип
+
+  {
+    if (functype != identab[pred + 2])
+    {
+      error(204);
+    }
+    identab[pred + 3] = fn;
+  }
+  curid = id;
+
+  for (i = 0; i < n; i++)
+  {
+    type = modetab[functype + i + 3];
+    repr = functions[fn + i + 1];
+    if (repr > 0)
+    {
+      toidentab(0, type);
+    }
+    else
+    {
+      repr = -repr;
+      toidentab(-1, type);
+    }
+  }
+
+  functions[fn] = tc;
+  totree(-309);
+  totree(fid);
+  pred = tc++;
+  repr = oldrepr;
+
+  block(0);
+
+  // if (ftype == LVOID && tree[tc - 1] != TReturnvoid)
+
+  // {
+
+  tc--;
+  totree(-325);
+  totree(-315);
+  // }
+
+
+  if (ftype != -6 && !wasret)
+  {
+    error(264);
+  }
+
+  for (i = id - 4; i >= curid; i -= 4)
+  {
+    reprtab[identab[i + 1] + 1] = identab[i];
+  }
+
+  for (i = 0; i < pgotost - 1; i += 2)
+  {
+    repr = identab[gotost[i] + 1];
+    hash = gotost[i + 1];
+
+    if (hash < 0)
+    {
+      hash = -hash;
+    }
+
+    if (!identab[gotost[i] + 2])
+    {
+      error(294);
+    }
+  }
+
+  curid = 2;        // все функции описываются на одном уровне
+
+  tree[pred] = maxdispl;  // + 1; ?
+
+  lg = -1;
+  displ = olddispl;
+}
+
+int func_declarator(int level, int func_d, int _firstdecl)
+{
+  // на 1 уровне это может быть определением функции или предописанием, на остальных уровнях
+
+  // - только декларатором (без идентов)
+
+
+  int loc_modetab[100];
+  int locmd;
+  int numpar = 0;
+  int ident;
+  int maybe_fun;
+  int repeat = 1;
+  int i;
+  int wastype = 0;
+  int old;
+
+  loc_modetab[0] = 1001;
+  loc_modetab[1] = _firstdecl;
+  loc_modetab[2] = 0;
+  locmd = 3;
+
+  while (repeat)
+  {
+    if (cur == -6 || is_int(cur) || is_float(cur) || cur == -14)
+    {
+      maybe_fun = 0;  // м.б. параметр-ф-ция?
+
+              // 0 - ничего не было,
+
+              // 1 - была *,
+
+              // 2 - была [
+
+
+      ident = 0;    // = 0 - не было идента,
+
+              // 1 - был статический идент,
+
+              // 2 - был идент-параметр-функция
+
+
+      wastype = 1;
+      type = gettype();
+
+      if (next == 9039)
+      {
+        maybe_fun = 1;
+        scaner();
+        if (type == -6)
+          type = -150;
+        else 
+          type = newdecl(1004, type);
+        //type = type == LVOID ? LVOIDASTER : newdecl(MPOINT, type);
+
+      }
+
+      if (level)
+      {
+        if (next == 109)
+        {
+          scaner();
+          ident = 1;
+          functions[funcnum++] = repr;
+        }
+      }
+      else if (next == 109)
+      {
+        error(280);
+      }
+
+      if (next == 105)
+      {
+        maybe_fun = 2;
+
+        if (is_pointer(type) && ident == 0)
+        {
+          error(274);
+        }
+
+        while (next == 105)
+        {
+          scaner();
+          mustbe(106, 202);
+          type = newdecl(1003, type);
+        }
+      }
+    }
+
+    if (cur == -6)
+    {
+      type = -6;
+      wastype = 1;
+
+      if (next != 103)
+      {
+        error(279);
+      }
+    }
+
+    if (wastype)
+    {
+      numpar++;
+      loc_modetab[locmd++] = type;
+
+      if (next == 103)
+      {
+        scaner();
+        mustbe(9039, 276);
+
+        if (next == 109)
+        {
+          if (level)
+          {
+            scaner();
+
+            if (ident == 0)
+            {
+              ident = 2;
+            }
+            else
+            {
+              error(284);
+            }
+            functions[funcnum++] = -repr;
+          }
+          else
+          {
+            error(280);
+          }
+        }
+
+        mustbe(104, 277);
+        mustbe(103, 276);
+        scaner();
+
+        if (maybe_fun == 1)
+        {
+          error(272);
+        }
+        else if (maybe_fun == 2)
+        {
+          error(281);
+        }
+
+        old = func_def;
+        loc_modetab[locmd - 1] = func_declarator(0, 2, type);
+        func_def = old;
+      }
+
+      if (func_d == 3)
+      {
+        if (ident > 0)
+          func_d = 1;
+        else
+          func_d = 2;
+        //func_d = ident > 0 ? 1 : 2;
+
+      }
+      else if (func_d == 2 && ident > 0)
+      {
+        error(283);
+      }
+      else if (func_d == 1 && ident == 0)
+      {
+        error(282);
+      }
+
+      if (scaner() == 100)
+      {
+        scaner();
+      }
+      else if (cur == 104)
+      {
+        repeat = 0;
+      }
+    }
+    else if (cur == 104)
+    {
+      repeat = 0;
+      func_d = 0;
+    }
+    else
+    {
+      error(207);
+    }
+  }
+  func_def = func_d;
+  loc_modetab[2] = numpar;
+
+  modetab[md] = startmode;
+  startmode = md++;
+  for (i = 0; i < numpar + 3; i++)
+  {
+    modetab[md++] = loc_modetab[i];
+  }
+
+  return check_duplicates();
+}
+
+void ext_decl()
+{
+  int i;
+  do    // top level описания переменных и функций до конца файла
+
+  {
+    int repeat = 1;
+    int funrepr;
+    int _first = 1;
+
+    wasstructdef = 0;
+    scaner();
+
+    /*
+      if (cur == SH_DEFINE)
+      {
+        mustbe(IDENT, no_ident_in_define);
+
+        if (scaner() == LMINUS)
+        {
+          scaner(), k = -1;
+        }
+
+        if (cur != NUMBER || ansttype != LINT)
+        {
+          error(not_int_in_define);
+        }
+
+        toidentab(-2, k * num);
+        continue;
+      }
+    */ 
+
+    firstdecl = gettype();
+    if (wasstructdef && next == 117)  // struct point {float x, y;};
+
+    {
+      scaner();
+      continue;
+    }
+
+    func_def = 3; // func_def = 0 - (),
+
+            // 1 - определение функции,
+
+            // 2 - это предописание,
+
+            // 3 - не знаем или вообще не функция
+
+
+    /*
+      if (firstdecl == 0)
+      {
+        firstdecl = LINT;
+      }
+    */ 
+
+    do  // описываемые объекты через ',' определение функции может быть только одно, никаких ','
+
+    {
+      int _ex = 0;
+      type = firstdecl;
+      if (next == 9039)
+      {
+        scaner();
+        if (firstdecl == -6)
+          type = -150;
+        else
+          newdecl(1004, firstdecl);
+        //type = firstdecl == LVOID ? LVOIDASTER : newdecl(MPOINT, firstdecl);
+
+      }
+      mustbe(109, 201);
+
+      if (next == 103) // определение или предописание функции
+
+      {
+        int oldfuncnum = funcnum++;
+        int firsttype = type;
+
+        funrepr = repr;
+        scaner();
+        scaner();
+        type = func_declarator(_first, 3, firsttype);  // выкушает все параметры до ) включительно
+
+
+        if (next == 115)
+        {
+          if (func_def == 0)
+          {
+            func_def = 1;
+          }
+        }
+        else if (func_def == 0)
+        {
+          func_def = 2;
+        }
+        // теперь я точно знаю, это определение ф-ции или предописание (func_def = 1 или 2)
+
+        repr = funrepr;
+
+        toidentab(oldfuncnum, type);
+
+        if (next == 115)
+        {
+          scaner();
+          if (func_def == 2)
+          {
+            error(217);
+          }
+
+          function_definition();
+          _ex = 1;
+        }
+        else
+        {
+          if (func_def == 1)
+          {
+            error(285);
+          }
+        }
+      }
+      else if (firstdecl == -6)
+      {
+        error(203);
+      }
+      if (_ex)
+        break;
+      // описания идентов-не-функций
+
+
+      if (func_def == 3)
+      {
+        decl_id(type);
+      }
+
+      if (next == 100)
+      {
+        scaner();
+        _first = 0;
+      }
+      else if (next == 117)
+      {
+        scaner();
+        repeat = 0;
+      }
+      else
+      {
+        error(212);
+      }
+    } while (repeat);
+
+  } while (next != 120);
+
+  if (wasmain == 0)
+  {
+    error(248);
+  }
+
+  for (i = 0; i <= prdf; i++)
+  {
+    if (predef[i])
+    {
+      repr = predef[i];
+      error(327);
+    }
+  }
+
+  totree(-315);
+}
+
+
+
+
+
+
+int curth = 0;
+
+
+void Declid_gen();
+
+
+void tocode(int c)
+{
+  // printf("tocode tc=%i pc %i) %i\n", tc, pc, c);
+
+  mem[pc++] = c;
+}
+
+void adbreakend()
+{
+  while (adbreak)
+  {
+    int r = mem[adbreak];
+    mem[adbreak] = pc;
+    adbreak = r;
+  }
+}
+
+void adcontbeg(int ad)
+{
+  while (adcont != ad)
+  {
+    int r = mem[adcont];
+    mem[adcont] = ad;
+    adcont = r;
+  }
+}
+
+void adcontend()
+{
+  while (adcont != 0)
+  {
+    int r = mem[adcont];
+    mem[adcont] = pc;
+    adcont = r;
+  }
+}
+
+void finalop()
+{
+  int c;
+  while ((c = tree[tc]) > 9000)
+  {
+    tc++;
+    if (c != 9453)
+    {
+      if (c == 9480)
+      {
+        tocode(9475);
+        tocode(9471);
+        tree[tree[tc++]] = pc++;
+      }
+      else if (c == 9479)
+      {
+        tocode(9475);
+        tocode(9470);
+        tree[tree[tc++]] = pc++;
+      }
+      else
+      {
+        tocode(c);
+        if (c == 9030 || c == 9029)
+        {
+          mem[tree[tc++]] = pc;
+        }
+        else if (c == 9300 || c == 9308)
+        {
+          tocode(tree[tc++]); // d1
+
+          tocode(tree[tc++]); // d2
+
+          tocode(tree[tc++]); // длина
+
+        }
+        else if (c == 9301 || c == 9302 || c == 9304 || c == 9306 )
+        {
+          tocode(tree[tc++]); // d1
+
+          tocode(tree[tc++]); // длина
+
+        }
+        else if (c == 9303 || c == 9305 || c == 9307 )
+        {
+          tocode(tree[tc++]); // длина
+
+        }
+        else if ((c >= 9001 && c <= 9011) || (c >= 9201 && c <= 9211) ||
+            (c >= 9057 && c <= 9061) || (c >= 9257 && c <= 9261) || (c >= 9041 && c <= 9044) ||
+            (c >= 9241 && c <= 9244) || (c >= 9091 && c <= 9094) || (c >= 9291 && c <= 9294))
+        {
+          tocode(tree[tc++]);
+        }
+      }
+    }
+  }
+}
+
+int Expr_gen(int incond)
+{
+  int flagprim = 1;
+  int eltype;
+  int wasstring = 0;
+
+  while (flagprim)
+  {
+    switch (tree[tc++])
+    {
+      case -300:
+        anstdispl = tree[tc++];
+        break;
+      case -333:
+      {
+        tocode(9464);
+        tocode(anstdispl = tree[tc++]);
+      }
+        break;
+      case -305:
+      {
+        tocode(9457);
+        tocode(tree[tc++]);
+      }
+        break;
+      case -340:
+      {
+        tocode(9458);
+        tocode(tree[tc++]);
+      }
+        break;
+      case -306:
+        tocode(9459);
+        break;
+      case -341:
+        tocode(9460);
+        break;
+      case -301:
+      {
+        tocode(9455);
+        tocode(tree[tc++]);
+      }
+        break;
+      case -339:
+      {
+        tocode(9456);
+        tocode(tree[tc++]);
+        tocode(tree[tc++]);
+      }
+        break;
+      case -302:
+      {
+        int n = tree[tc++];
+        int res;
+        int i;
+
+        tocode(9455);
+        tocode(res = pc + 4);
+        tocode(9469);
+
+        pc += 2;
+        for (i = 0; i < n; i++)
+        {
+          tocode(tree[tc++]);
+        }
+
+        mem[res - 1] = n;
+        mem[res - 2] = pc;
+        wasstring = 1;
+      }
+        break;
+      case -310:
+        Declid_gen();
+        break;
+      case -342:
+      {
+        int n = tree[tc++];
+        int i;
+
+        tocode(9481);
+        tocode(n);
+
+        for (i = 0; i < n; i++)
+        {
+          Expr_gen(0);
+        }
+      }
+        break;
+      case -343:
+      {
+        int n = tree[tc++];
+        int i;
+        for (i = 0; i < n; i++)
+        {
+          Expr_gen(0);
+        }
+      }
+        break;
+      case -303:
+      {
+        int sz;
+        tocode(9457);   // параметры - смещение идента и тип элемента
+
+        tocode(tree[tc++]); // продолжение в след case
+
+
+        eltype = tree[tc++];
+        sz = szof(eltype);
+
+        Expr_gen(0);
+
+        tocode(9472);
+        tocode(sz);
+        //tocode(szof(eltype));
+
+
+        if (eltype > 0 && modetab[eltype] == 1003)
+        {
+          tocode(9459);
+        }
+      }
+        break;
+      case -304:      // параметр - тип элемента
+
+      {
+        int sz;
+        eltype = tree[tc++];
+        sz = szof(eltype);
+        Expr_gen(0);
+
+        tocode(9472);
+        tocode(sz);
+        //tocode(szof(eltype));
+
+
+        if (eltype > 0 && modetab[eltype] == 1003)
+        {
+          tocode(9459);
+        }
+      }
+        break;
+      case -334:
+      {
+        tocode(9462);   // SELECT field_displ
+
+        tocode(tree[tc++]);
+      }
+        break;
+      case -329:
+      {
+        tocode(-24);
+        tocode(tree[tc++]); // type
+
+      }
+        break;
+      case -307:
+      {
+        int i;
+        int n = tree[tc++];
+
+        tocode(9465);
+
+        for (i = 0; i < n; i++)
+        {
+          Expr_gen(0);
+        }
+      }
+        break;
+      case -308:
+      {
+        tocode(9466);
+        tocode(identab[tree[tc++] + 3]);
+      }
+        break;
+
+      default:
+        tc--;
+    }
+
+    finalop();
+
+    if (tree[tc] == -313)
+    {
+      if (incond)
+      {
+        return wasstring;
+      }
+      else
+      {
+        int adelse;
+        int ad = 0;
+        do
+        {
+          tc++;
+          tocode(9470);
+          adelse = pc++;
+          Expr_gen(0);  // then
+
+          tocode(9469);
+          mem[pc] = ad;
+          ad = pc;
+          mem[adelse] = ++pc;
+          Expr_gen(1);  // else или cond
+
+        } while (tree[tc] == -313);
+
+        while (ad)
+        {
+          int r = mem[ad];
+          mem[ad] = pc;
+          ad = r;
+        }
+      }
+
+      finalop();
+    }
+
+    if (tree[tc] == -312)
+    {
+      tc++;
+      flagprim = 0;
+    }
+  }
+
+  return wasstring;
+}
+
+void compstmt_gen();
+
+void Stmt_gen()
+{
+  switch (tree[tc++])
+  {
+    case 9453:
+      break;
+
+    case 9528:
+      tocode(9528);
+      break;
+
+    case 9562:
+      tocode(9562);
+      break;
+
+    case -336:
+    {
+      tocode(9469);
+      tocode(0);
+      iniprocs[tree[tc++]] = pc;
+    }
+      break;
+
+    case -337:
+    {
+      int numproc = tree[tree[tc++] + 1];
+      tocode(9461);
+      mem[iniprocs[numproc] - 1] = pc;
+    }
+      break;
+
+    case -314:
+      compstmt_gen();
+      break;
+
+    case -316:
+    {
+      int elseref = tree[tc++];
+      int ad;
+
+      Expr_gen(0);
+      tocode(9470);
+      ad = pc++;
+      Stmt_gen();
+
+      if (elseref)
+      {
+        mem[ad] = pc + 2;
+        tocode(9469);
+        ad = pc++;
+        Stmt_gen();
+      }
+
+      mem[ad] = pc;
+    }
+      break;
+    case -317:
+    {
+      int oldbreak = adbreak;
+      int oldcont = adcont;
+      int ad = pc;
+
+      adcont = ad;
+      Expr_gen(0);
+      tocode(9470);
+      mem[pc] = 0;
+      adbreak = pc++;
+      Stmt_gen();
+      adcontbeg(ad);
+      tocode(9469);
+      tocode(ad);
+      adbreakend();
+      adbreak = oldbreak;
+      adcont = oldcont;
+    }
+      break;
+    case -318:
+    {
+      int oldbreak = adbreak;
+      int oldcont = adcont;
+      int ad = pc;
+
+      adcont = adbreak = 0;
+      Stmt_gen();
+      adcontend();
+      Expr_gen(0);
+      tocode(9471);
+      tocode(ad);
+      adbreakend();
+      adbreak = oldbreak;
+      adcont = oldcont;
+    }
+      break;
+    case -319:
+    {
+      int fromref = tree[tc++];
+      int condref = tree[tc++];
+      int incrref = tree[tc++];
+      int stmtref = tree[tc++];
+      int oldbreak = adbreak;
+      int oldcont = adcont;
+      int incrtc;
+      int endtc;
+      int initad;
+
+      if (fromref)
+      {
+        Expr_gen(0);  // init
+
+      }
+
+      initad = pc;
+      adcont = adbreak = 0;
+
+      if (condref)
+      {
+        Expr_gen(0);  // cond
+
+        tocode(9470);
+        mem[pc] = 0;
+        adbreak = pc++;
+      }
+
+      incrtc = tc;
+      tc = stmtref;
+      Stmt_gen();
+      adcontend();
+
+      if (incrref)
+      {
+        endtc = tc;
+        tc = incrtc;
+        Expr_gen(0);  // incr
+
+        tc = endtc;
+      }
+
+      tocode(9469);
+      tocode(initad);
+      adbreakend();
+      adbreak = oldbreak;
+      adcont = oldcont;
+    }
+      break;
+    case -327:
+    {
+      int id1 = tree[tc++];
+      int a;
+      int _id;
+
+      if (_id > 0)
+        _id = id1;
+      else
+        _id = -id1;
+      //int _id = id1 > 0 ? id1 : -id1;
+
+
+      tocode(9469);
+
+      if ((a = identab[_id + 3]) > 0) // метка уже описана
+
+      {
+        tocode(a);
+      }
+      else              // метка еще не описана
+
+      {
+        identab[_id + 3] = -pc;
+        if (id1 < 0)
+          tocode(0);  // первый раз встретился переход на еще не описанную метку или нет
+
+        else
+          tocode(a);
+        // tocode(id1 < 0 ? 0 : a);  // первый раз встретился переход на еще не описанную метку или нет
+
+      }
+    }
+      break;
+    case -328:
+    {
+      int _id = tree[tc++];
+      int a;
+
+      if ((a = identab[_id + 3]) < 0) // были переходы на метку
+
+      {
+        while (a)         // проставить ссылку на метку во всех ранних переходах
+
+        {
+          int r = mem[-a];
+          mem[-a] = pc;
+          a = r;
+        }
+      }
+      identab[_id + 3] = pc;
+    }
+      break;
+    case -320:
+    {
+      int oldbreak = adbreak;
+      int oldcase = adcase;
+
+      adbreak = 0;
+      adcase = 0;
+      Expr_gen(0);
+      Stmt_gen();
+
+      if (adcase > 0)
+      {
+        mem[adcase] = pc;
+      }
+
+      adcase = oldcase;
+      adbreakend();
+      adbreak = oldbreak;
+    }
+      break;
+    case -321:
+    {
+      if (adcase)
+      {
+        mem[adcase] = pc;
+      }
+
+      tocode(9475);
+      Expr_gen(0);
+      tocode(9031);
+      tocode(9470);
+      adcase = pc++;
+      Stmt_gen();
+    }
+      break;
+    case -322:
+    {
+      if (adcase)
+      {
+        mem[adcase] = pc;
+      }
+
+      adcase = 0;
+      Stmt_gen();
+    }
+      break;
+
+    case -323:
+    {
+      tocode(9469);
+      mem[pc] = adbreak;
+      adbreak = pc++;
+    }
+      break;
+    case -324:
+    {
+      tocode(9469);
+      mem[pc] = adcont;
+      adcont = pc++;
+    }
+      break;
+    case -325:
+    {
+      tocode(9468);
+    }
+      break;
+    case -326:
+    {
+      int d = tree[tc++];
+
+      Expr_gen(0);
+      tocode(9467);
+      tocode(d);
+    }
+      break;
+    case -330:
+    {
+      tocode(-23);
+      tocode(tree[tc++]); // ссылка в identtab
+
+    }
+      break;
+    case -331:
+    {
+      tocode(-25);
+      tocode(tree[tc++]); // общий размер того, что надо вывести
+
+    }
+      break;
+    case -344:
+    {
+      tocode(-93);
+      tocode(tree[tc++]); // общий размер того, что надо вывести
+
+    }
+      break;
+    case -332:
+    {
+      tocode(-27);
+      tocode(tree[tc++]); // ссылка в identtab
+
+    }
+      break;
+
+    default:
+    {
+      tc--;
+      Expr_gen(0);
+    }
+      break;
+  }
+}
+
+void Struct_init_gen()
+{
+  int i;
+  int n;
+
+  if (tree[tc] == -343)
+  {
+    tc++;
+    n = tree[tc++];
+
+    for (i = 0; i < n; i++)
+    {
+      Struct_init_gen();
+    }
+    tc++; // TExprend
+
+  }
+  else
+  {
+    Expr_gen(0);
+  }
+}
+
+void Declid_gen()
+{
+  int olddispl = tree[tc++];
+  int telem = tree[tc++];
+  int N = tree[tc++];
+  int element_len;
+  int all = tree[tc++];   // all - общее кол-во слов в структуре
+
+                // all == 0 нет инициализатора,
+
+                // all == 1 есть инициализатор,
+
+                // all == 2 есть инициализатор только из строк
+
+  int iniproc = tree[tc++];
+  int usual = tree[tc++];   // для массивов есть еще usual
+
+                // == 0 с пустыми границами,
+
+                // == 1 без пустых границ
+
+  int instruct = tree[tc++];
+
+  element_len = szof(telem);
+
+  if (N == 0) // обычная переменная int a; или struct point p;
+
+  {
+    if (iniproc)
+    {
+      tocode(9478);
+      tocode(olddispl);
+      tocode(iniprocs[iniproc]);
+    }
+    if (all)  // int a = или struct{} a =
+
+    {
+      if (telem > 0 && modetab[telem] == 1002)
+      {
+        Struct_init_gen();
+        tocode(9306 );
+        tocode(olddispl);
+        tocode(all);  // общее кол-во слов
+
+      }
+      else
+      {
+        Expr_gen(0);
+        tocode(telem == -3 ? 9257 : 9207);
+        tocode(olddispl);
+      }
+    }
+  }
+  else  // Обработка массива int a[N1]...[NN] =
+
+  {
+    int __abs_N;
+    tocode(9454); // DEFARR N, d, displ, iniproc, usual   N1...NN уже лежат на стеке
+
+    __abs_N = abs(N);
+    tocode(all == 0 ? N : __abs_N - 1);
+    tocode(element_len);
+    tocode(olddispl);
+    tocode(iniprocs[iniproc]);
+    tocode(usual);
+    tocode(all);
+    tocode(instruct);
+
+    if (all)  // all == 1, если есть инициализация массива
+
+    {
+      Expr_gen(0);
+      tocode(9477); // ARRINIT N d all displ usual
+
+      tocode(__abs_N);
+      tocode(element_len);
+      tocode(olddispl);
+      tocode(usual);  // == 0 с пустыми границами
+
+              // == 1 без пустых границ и без инициализации
+
+    }
+  }
+}
+
+void compstmt_gen()
+{
+  while (tree[tc] != -315)
+  {
+    switch (tree[tc])
+    {
+      case -338:
+      {
+        int i;
+        int N;
+
+        tc++;
+        N = tree[tc++];
+
+        for (i = 0; i < N; i++)
+        {
+          Expr_gen(0);
+        }
+      }
+        break;
+
+      case -310:
+      {
+        tc++;
+        Declid_gen();
+      }
+        break;
+
+      default:
+      {
+        Stmt_gen();
+      }
+    }
+  }
+  tc++;
+}
+
+void codegen()
+{
+  int treesize = tc;
+  tc = 0;
+
+  while (tc < treesize)
+  {
+    switch (tree[tc++])
+    {
+      case -315:
+        break;
+      case -309:
+      {
+        int identref = tree[tc++];
+        int _maxdispl = tree[tc++];
+        int fn = identab[identref + 3];
+        int pred;
+
+        functions[fn] = pc;
+        tocode(9463);
+        tocode(_maxdispl);
+        pred = pc++;
+        tc++; // TBegin
+
+        compstmt_gen();
+        mem[pred] = pc;
+      }
+        break;
+
+      case -338:
+      {
+        int i;
+        int N = tree[tc++];
+
+        for (i = 0; i < N; i++)
+        {
+          Expr_gen(0);
+        }
+      }
+        break;
+
+      case -310:
+        Declid_gen();
+
+        break;
+
+      case 9453:
+        break;
+
+      case -336:
+      {
+        tocode(9469);
+        tocode(0);
+        iniprocs[tree[tc++]] = pc;
+      }
+        break;
+
+      case -337:
+      {
+        int numproc = tree[tree[tc++] + 1];
+        tocode(9461);
+        mem[iniprocs[numproc] - 1] = pc;
+      }
+        break;
+
+
+      default:
+      {
+        printf("что-то не то\n");
+        printf("tc=%i tree[tc-2]=%i tree[tc-1]=%i\n", tc, tree[tc - 2], tree[tc - 1]);
+      }
+    }
+  }
+
+  if (wasmain == 0)
+  {
+    error(248);
+  }
+
+  tocode(9465);
+  tocode(9466);
+  tocode(identab[wasmain + 3]);
+  tocode(9461);
+}
+
+
+
+void tablesandcode();
+void tablesandtree();
+
+
+//#include "codes.h"
+
+
+
+
+void tablesandtree()
+{
+  int i = 0;
+  int j;
+
+  fprintf(output, "\n%s\n", "source");
+  for (i = 1; i < line; i++)
+  {
+    fprintf(output, "line %i) ", i);
+    for (j = lines[i]; j < lines[i + 1]; j++)
+    {
+      fprintf_char(output, source[j]);
+    }
+  }
+  fprintf(output, "\n");
+
+  fprintf(output, "\n%s\n", "identab");
+  i = 2;
+  while (i < id)
+  {
+    for (j = 0; j < 4; j++)
+    {
+      fprintf(output, "id %i) %i\n", i + j, identab[i + j]);
+    }
+    fprintf(output, "\n");
+    i += 4;
+  }
+
+  /*
+    fprintf(output, "\n%s\n", "repr");
+    for (i = 1206; i <= rp; i++)
+    {
+      fprintf(output, "rp %i) %i\n", i, reprtab[i]);
+    }
+  */ 
+
+  fprintf(output, "\n%s\n", "modetab");
+  for (i = 0; i < md; i++)
+  {
+    fprintf(output, "md %i) %i\n", i, modetab[i]);
+  }
+
+  /*
+    fprintf(output, "\n%s\n", "tree");
+    for (i = 0; i <= tc; i++)
+    {
+      fprintf(output, "tc %i) %i\n", i, tree[i]);
+    }
+  */ 
+
+  fprintf(output, "\n");
+  i = 0;
+  while (i < tc)
+  {
+    fprintf(output, "tc %i) ", i);
+    switch (tree[i++])
+    {
+      case -309:
+      {
+        fprintf(output, "TFuncdef funcn= %i maxdispl= %i\n", tree[i], tree[i + 1]);
+        i += 2;
+      }
+        break;
+      case -338:
+        fprintf(output, "TDeclarr N= %i\n", tree[i++]);
+        break;
+      case -310:
+      {
+        fprintf(output, "TDeclid displ= %i eltype= %i N= %i all= %i iniproc= %i, usual= %i instuct= %i\n",
+            tree[i], tree[i + 1], tree[i + 2], tree[i + 3], tree[i + 4], tree[i + 5], tree[i + 6]);
+        i += 7;
+      }
+        break;
+      case -302:
+        fprintf(output, "TString n= %i\n", tree[i++]);
+        break;
+      case -313:
+        fprintf(output, "TCondexpr\n");
+        break;
+      case -314:
+        fprintf(output, "TBegin\n");
+        break;
+      case -315:
+        fprintf(output, "TEnd\n");
+        break;
+      case -342:
+        fprintf(output, "TBeginit n= %i\n", tree[i++]);
+        break;
+      case -343:
+        fprintf(output, "TStructinit n= %i\n", tree[i++]);
+        break;
+      case -316:
+        fprintf(output, "TIf %i\n", tree[i++]);
+        break;
+      case -317:
+        fprintf(output, "TWhile\n");
+        break;
+      case -318:
+        fprintf(output, "TDo\n");
+        break;
+      case -319:
+      {
+        fprintf(output, "TFor %i %i %i %i\n", tree[i], tree[i + 1], tree[i + 2], tree[i + 3]);
+        i += 4;
+      }
+        break;
+      case -320:
+        fprintf(output, "TSwitch\n");
+        break;
+      case -321:
+        fprintf(output, "TCase\n");
+        break;
+      case -322:
+        fprintf(output, "TDefault\n");
+        break;
+      case -323:
+        fprintf(output, "TBreak\n");
+        break;
+      case -324:
+        fprintf(output, "TContinue\n");
+        break;
+      case -325:
+        fprintf(output, "TReturn\n");
+        break;
+      case -326:
+        fprintf(output, "TReturnval %i\n", tree[i++]);
+        break;
+      case -327:
+        fprintf(output, "TGoto %i\n", tree[i++]);
+        break;
+      case -300:
+        fprintf(output, "TIdent %i\n", tree[i++]);
+        break;
+      case -305:
+        fprintf(output, "TIdenttoval %i\n", tree[i++]);
+        break;
+      case -340:
+        fprintf(output, "TIdenttovald %i\n", tree[i++]);
+        break;
+      case -335:
+        fprintf(output, "TFunidtoval %i\n", tree[i++]);
+        break;
+      case -333:
+        fprintf(output, "TIdenttoaddr %i\n", tree[i++]);
+        break;
+      case -306:
+        fprintf(output, "TAddrtoval\n");
+        break;
+      case -341:
+        fprintf(output, "TAddrtovald\n");
+        break;
+      case -312:
+        fprintf(output, "TExprend\n");
+        break;
+      case -301:
+        fprintf(output, "TConst %i\n", tree[i++]);
+        break;
+      case -339:
+      {
+        dtonumr(&numdouble, &tree[i]);
+        i += 2;
+        fprintf(output, "TConstd %f\n", numdouble);
+      }
+        break;
+      case -303:
+      {
+        fprintf(output, "TSliceident displ= %i type= %i\n", tree[i], tree[i + 1]);
+        i += 2;
+      }
+        break;
+      case -304:
+        fprintf(output, "TSlice elem_type= %i\n", tree[i++]);
+        break;
+      case -334:
+        fprintf(output, "TSelect displ= %i\n", tree[i++]);
+        break;
+      case 9453:
+        fprintf(output, "NOP\n");
+        break;
+      case 9479:
+        fprintf(output, "ADLOGAND addr= %i\n", tree[i++]);
+        break;
+      case 9480:
+        fprintf(output, "ADLOGOR addr= %i\n", tree[i++]);
+        break;
+      case 9300:
+      {
+        fprintf(output, "COPY00 %i ", tree[i++]);     // displleft
+
+        fprintf(output, "%i ", tree[i++]);          // displright
+
+        fprintf(output, "(%i)\n", tree[i++]);       // length
+
+      }
+        break;
+      case 9301:
+      {
+        fprintf(output, "COPY01 %i ", tree[i++]);     // displleft
+
+        fprintf(output, "(%i)\n", tree[i++]);       // length
+
+      }
+        break;
+      case 9302:
+      {
+        fprintf(output, "COPY10 %i ", tree[i++]);     // displright
+
+        fprintf(output, "(%i)\n", tree[i++]);       // length
+
+      }
+        break;
+      case 9303:
+        fprintf(output, "COPY11 %i\n", tree[i++]);      // length
+
+        break;
+      case 9304:
+      {
+        fprintf(output, "COPY0ST %i ", tree[i++]);      // displleft
+
+        fprintf(output, "(%i)\n", tree[i++]);       // length
+
+      }
+        break;
+      case 9305:
+        fprintf(output, "COPY1ST (%i)\n", tree[i++]);   // length
+
+        break;
+      case 9306 :
+      {
+        fprintf(output, "COPY0STASS %i ", tree[i++]);   // displleft
+
+        fprintf(output, "(%i)\n", tree[i++]);       // length
+
+      }
+        break;
+      case 9307 :
+        fprintf(output, "COPY1STASS (%i)\n", tree[i++]);  // length
+
+        break;
+      case 9308:
+      {
+        fprintf(output, "COPYST %i ", tree[i++]);     // displ
+
+        fprintf(output, "(%i)", tree[i++]);         // length
+
+        fprintf(output, "(%i)\n", tree[i++]);       // length1
+
+      }
+        break;
+
+      case -307:
+        fprintf(output, "TCall1 %i\n", tree[i++]);
+        break;
+      case -308:
+        fprintf(output, "TCall2 %i\n", tree[i++]);
+        break;
+      case -328:
+        fprintf(output, "TLabel %i\n", tree[i++]);
+        break;
+      case -336:
+        fprintf(output, "TStructbeg %i\n", tree[i++]);
+        break;
+      case -337:
+        fprintf(output, "TStructend %i\n", tree[i++]);
+        break;
+      case -329:
+        fprintf(output, "TPrint %i\n", tree[i++]);
+        break;
+      case -330:
+        fprintf(output, "TPrintid %i\n", tree[i++]);
+        break;
+      case -331:
+        fprintf(output, "TPrintf %i\n", tree[i++]);
+        break;
+      case -332:
+        fprintf(output, "TGetid %i\n", tree[i++]);
+        break;
+      case 9530:
+        fprintf(output, "Setmotor\n");
+        break;
+      case 9559:
+        fprintf(output, "TCREATE\n");
+        break;
+      case 9528:
+        fprintf(output, "TCREATEDIRECT\n");
+        break;
+      case 9562:
+        fprintf(output, "TEXIT\n");
+        break;
+      case 9529:
+        fprintf(output, "TEXITDIRECT\n");
+        break;
+      case 9552:
+        fprintf(output, "TMSGSEND\n");
+        break;
+      case 9553:
+        fprintf(output, "TMSGRECEIVE\n");
+        break;
+      case 9554:
+        fprintf(output, "TJOIN\n");
+        break;
+      case 9555:
+        fprintf(output, "TSLEEP\n");
+        break;
+      case 9556:
+        fprintf(output, "TSEMCREATE\n");
+        break;
+      case 9557:
+        fprintf(output, "TSEMWAIT\n");
+        break;
+      case 9558:
+        fprintf(output, "TSEMPOST\n");
+        break;
+      case 9560:
+        fprintf(output, "INITC\n");
+        break;
+      case 9561:
+        fprintf(output, "DESTROYC\n");
+        break;
+      case 9563:
+        fprintf(output, "GETNUMC\n");
+        break;
+
+      default:
+        fprintf(output, "TOper %i\n", tree[i - 1]);
+    }
+  }
+}
+
+void tablesandcode()
+{
+  int i = 0;
+  int j;
+
+  fprintf(output, "\n%s\n", "source");
+  for (i = 1; i < line; i++)
+  {
+    fprintf(output, "line %i) ", i);
+    for (j = lines[i]; j < lines[i + 1]; j++)
+    {
+      fprintf_char(output, source[j]);
+    }
+  }
+
+  fprintf(output, "\n\n%s\n", "functions");
+  for (i = 1; i <= funcnum; i++)
+  {
+    fprintf(output, "fun %i) %i\n", i, functions[i]);
+  }
+
+  fprintf(output, "\n%s\n", "iniprocs");
+  for (i = 1; i <= procd; i++)
+  {
+    fprintf(output, "inipr %i) %i\n", i, iniprocs[i]);
+  }
+
+  fprintf(output, "\n%s\n", "mem");
+  i = 0;
+  while (i < pc)
+  {
+    fprintf(output, "pc %i) ", i);
+    switch (mem[i++])
+    {
+      case -24:
+        fprintf(output, "PRINT %i\n", mem[i++]);
+        break;
+      case -23:
+        fprintf(output, "PRINTID %i\n", mem[i++]);
+        break;
+      case -25:
+        fprintf(output, "PRINTF %i\n", mem[i++]);
+        break;
+      case -27:
+        fprintf(output, "GETID %i\n", mem[i++]);
+        break;
+      case 9530:
+        fprintf(output, "SETMOTOR\n");
+        break;
+      case 9531:
+        fprintf(output, "GETDIGSENSOR\n");
+        break;
+      case 9532:
+        fprintf(output, "GETANSENSOR\n");
+        break;
+      case 9533:
+        fprintf(output, "VOLTAGE\n");
+        break;
+      case 9559:
+        fprintf(output, "TCREATE\n");
+        break;
+      case 9528:
+        fprintf(output, "TCREATEDIRECT\n");
+        break;
+      case 9552:
+        fprintf(output, "TMSGSEND\n");
+        break;
+      case 9562:
+        fprintf(output, "TEXIT\n");
+        break;
+      case 9529:
+        fprintf(output, "TEXITDIRECT\n");
+        break;
+      case 9553:
+        fprintf(output, "TMSGRECEIVE\n");
+        break;
+      case 9554:
+        fprintf(output, "TJOIN\n");
+        break;
+      case 9555:
+        fprintf(output, "TSLEEP\n");
+        break;
+      case 9556:
+        fprintf(output, "TSEMCREATE\n");
+        break;
+      case 9557:
+        fprintf(output, "TSEMWAIT\n");
+        break;
+      case 9558:
+        fprintf(output, "TSEMPOST\n");
+        break;
+      case -60:
+        fprintf(output, "TINIT\n");
+        break;
+      case -61:
+        fprintf(output, "TDESTROY\n");
+        break;
+      case 9563:
+        fprintf(output, "GETNUM\n");
+        break;
+
+      case 9534:
+        fprintf(output, "ABS\n");
+        break;
+      case 9651:
+        fprintf(output, "ABSI\n");
+        break;
+      case 9535:
+        fprintf(output, "SQRT\n");
+        break;
+      case 9536:
+        fprintf(output, "EXP\n");
+        break;
+      case 9537:
+        fprintf(output, "SIN\n");
+        break;
+      case 9538:
+        fprintf(output, "COS\n");
+        break;
+      case 9539:
+        fprintf(output, "LOG\n");
+        break;
+      case 9540:
+        fprintf(output, "LOG10\n");
+        break;
+      case 9541:
+        fprintf(output, "ASIN\n");
+        break;
+      case 9542:
+        fprintf(output, "RAND\n");
+        break;
+      case 9543:
+        fprintf(output, "ROUND\n");
+        break;
+
+      case 9544:
+        fprintf(output, "STRCPY\n");
+        break;
+      case 9545:
+        fprintf(output, "STRNCPY\n");
+        break;
+      case 9546:
+        fprintf(output, "STRCAT\n");
+        break;
+      case 9547:
+        fprintf(output, "STRNCAT\n");
+        break;
+      case 9548:
+        fprintf(output, "STRCMP\n");
+        break;
+      case 9549:
+        fprintf(output, "STRNCMP\n");
+        break;
+      case 9550:
+        fprintf(output, "STRSTR\n");
+        break;
+      case 9551:
+        fprintf(output, "STRLENC\n");
+        break;
+
+      case 9481:
+        fprintf(output, "BEGINIT n= %i\n", mem[i++]);
+        break;
+      case 9478:
+      {
+        fprintf(output, "STRUCTWITHARR displ= %i ", mem[i++]);
+        fprintf(output, "iniproc= %i\n", mem[i++]);
+      }
+        break;
+      case 9454:
+      {
+        fprintf(output, "DEFARR N= %i ", mem[i++]);   // N
+
+        fprintf(output, "elem_len= %i ", mem[i++]);   // elem length
+
+        fprintf(output, "displ= %i ", mem[i++]);    // displ
+
+        fprintf(output, "iniproc= %i ", mem[i++]);    // iniproc
+
+        fprintf(output, "usual= %i ", mem[i++]);    // usual
+
+        fprintf(output, "all= %i ", mem[i++]);      // all
+
+        fprintf(output, "instruct= %i\n", mem[i++]);  // instruct
+
+      }
+        break;
+      case 9477:
+      {
+        fprintf(output, "ARRINIT N= %i ", mem[i++]);
+        fprintf(output, "elem_len= %i ", mem[i++]);
+        fprintf(output, "displ= %i ", mem[i++]);
+        fprintf(output, "usual= %i\n", mem[i++]);
+      }
+        break;
+      /*
+        case STRUCTINIT:
+          fprintf(output, "STRUCTINIT N= %i ", mem[i++]);
+          break;
+      */ 
+      case 9453:
+        fprintf(output, "NOP\n");
+        break;
+      case 9455:
+        fprintf(output, "LI %i\n", mem[i++]);
+        break;
+      case 9456:
+      {
+        dtonumr(&numdouble, &mem[i]);
+        i += 2;
+        fprintf(output, "LID %f\n", numdouble);
+      }
+        break;
+      case 9457:
+        fprintf(output, "LOAD %i\n", mem[i++]);
+        break;
+      case 9458:
+        fprintf(output, "LOADD %i\n", mem[i++]);
+        break;
+      case 9459:
+        fprintf(output, "L@\n");
+        break;
+      case 9460:
+        fprintf(output, "L@f\n");
+        break;
+      case 9464:
+        fprintf(output, "LA %i\n", mem[i++]);
+        break;
+
+      case 9030:
+        fprintf(output, "||\n");
+        break;
+      case 9029:
+        fprintf(output, "&&\n");
+        break;
+      case 9006:
+        fprintf(output, "|= %i\n", mem[i++]);
+        break;
+      case 9017:
+        fprintf(output, "|=@\n");
+        break;
+      case 9206:
+        fprintf(output, "|=V %i\n", mem[i++]);
+        break;
+      case 9217:
+        fprintf(output, "|=@V\n");
+        break;
+      case 9028:
+        fprintf(output, "|\n");
+        break;
+      case 9005:
+        fprintf(output, "^= %i\n", mem[i++]);
+        break;
+      case 9016:
+        fprintf(output, "^=@\n");
+        break;
+      case 9205:
+        fprintf(output, "^=V %i\n", mem[i++]);
+        break;
+      case 9216:
+        fprintf(output, "^=@V\n");
+        break;
+      case 9027:
+        fprintf(output, "^\n");
+        break;
+      case 9004:
+        fprintf(output, "&= %i\n", mem[i++]);
+        break;
+      case 9015:
+        fprintf(output, "&=@\n");
+        break;
+      case 9204:
+        fprintf(output, "&=V %i\n", mem[i++]);
+        break;
+      case 9215:
+        fprintf(output, "&=@V\n");
+        break;
+      case 9026:
+        fprintf(output, "&\n");
+        break;
+
+      case 9031:
+        fprintf(output, "==\n");
+        break;
+      case 9032:
+        fprintf(output, "!=\n");
+        break;
+      case 9033:
+        fprintf(output, "<\n");
+        break;
+      case 9034:
+        fprintf(output, ">\n");
+        break;
+      case 9035:
+        fprintf(output, "<=\n");
+        break;
+      case 9036:
+        fprintf(output, ">=\n");
+        break;
+      case 9081:
+        fprintf(output, "==f\n");
+        break;
+      case 9082:
+        fprintf(output, "!=f\n");
+        break;
+      case 9083:
+        fprintf(output, "<f\n");
+        break;
+      case 9084:
+        fprintf(output, ">f\n");
+        break;
+      case 9085:
+        fprintf(output, "<=f\n");
+        break;
+      case 9086:
+        fprintf(output, ">=f\n");
+        break;
+
+      case 9003:
+        fprintf(output, ">>= %i\n", mem[i++]);
+        break;
+      case 9014:
+        fprintf(output, ">>=@\n");
+        break;
+      case 9203:
+        fprintf(output, ">>=V %i\n", mem[i++]);
+        break;
+      case 9214:
+        fprintf(output, ">>=@V\n");
+        break;
+      case 9025:
+        fprintf(output, ">>\n");
+        break;
+      case 9002:
+        fprintf(output, "<<= %i\n", mem[i++]);
+        break;
+      case 9013:
+        fprintf(output, "<<=@\n");
+        break;
+      case 9202:
+        fprintf(output, "<<=V %i\n", mem[i++]);
+        break;
+      case 9213:
+        fprintf(output, "<<=@V\n");
+        break;
+      case 9024:
+        fprintf(output, "<<\n");
+        break;
+
+      case 9007:
+        fprintf(output, "= %i\n", mem[i++]);
+        break;
+      case 9018:
+        fprintf(output, "=@\n");
+        break;
+      case 9207:
+        fprintf(output, "=V %i\n", mem[i++]);
+        break;
+      case 9218:
+        fprintf(output, "=@V\n");
+        break;
+
+      case 9008:
+        fprintf(output, "+= %i\n", mem[i++]);
+        break;
+      case 9019:
+        fprintf(output, "+=@\n");
+        break;
+      case 9208:
+        fprintf(output, "+=V %i\n", mem[i++]);
+        break;
+      case 9219:
+        fprintf(output, "+=@V\n");
+        break;
+      case 9037:
+        fprintf(output, "+\n");
+        break;
+
+      case 9009:
+        fprintf(output, "-= %i\n", mem[i++]);
+        break;
+      case 9020:
+        fprintf(output, "-=@\n");
+        break;
+      case 9209:
+        fprintf(output, "-=V %i\n", mem[i++]);
+        break;
+      case 9220:
+        fprintf(output, "-=@V\n");
+        break;
+      case 9038:
+        fprintf(output, "-\n");
+        break;
+
+      case 9010:
+        fprintf(output, "*= %i\n", mem[i++]);
+        break;
+      case 9021:
+        fprintf(output, "*=@\n");
+        break;
+      case 9210:
+        fprintf(output, "*=V %i\n", mem[i++]);
+        break;
+      case 9221:
+        fprintf(output, "*=@V\n");
+        break;
+      case 9039:
+        fprintf(output, "*\n");
+        break;
+
+      case 9011:
+        fprintf(output, "/= %i\n", mem[i++]);
+        break;
+      case 9022:
+        fprintf(output, "/=@\n");
+        break;
+      case 9211:
+        fprintf(output, "/=V %i\n", mem[i++]);
+        break;
+      case 9222:
+        fprintf(output, "/=@V\n");
+        break;
+      case 9040:
+        fprintf(output, "/\n");
+        break;
+
+      case 9057:
+        fprintf(output, "=f %i\n", mem[i++]);
+        break;
+      case 9257:
+        fprintf(output, "=fV %i\n", mem[i++]);
+        break;
+      case 9068:
+        fprintf(output, "=@f\n");
+        break;
+      case 9268:
+        fprintf(output, "=@fV\n");
+        break;
+
+      case 9058:
+        fprintf(output, "+=f %i\n", mem[i++]);
+        break;
+      case 9069:
+        fprintf(output, "+=@f\n");
+        break;
+      case 9258:
+        fprintf(output, "+=fV %i\n", mem[i++]);
+        break;
+      case 9269:
+        fprintf(output, "+=@fV\n");
+        break;
+      case 9087:
+        fprintf(output, "+f\n");
+        break;
+      case 9059:
+        fprintf(output, "-=f %i\n", mem[i++]);
+        break;
+      case 9070:
+        fprintf(output, "-=@f\n");
+        break;
+      case 9259:
+        fprintf(output, "-=fV %i\n", mem[i++]);
+        break;
+      case 9270:
+        fprintf(output, "-=@fV\n");
+        break;
+      case 9088:
+        fprintf(output, "-f\n");
+        break;
+      case 9060:
+        fprintf(output, "*=f %i\n", mem[i++]);
+        break;
+      case 9071:
+        fprintf(output, "*=@f\n");
+        break;
+      case 9260:
+        fprintf(output, "*=fV %i\n", mem[i++]);
+        break;
+      case 9271:
+        fprintf(output, "*=@fV\n");
+        break;
+      case 9089:
+        fprintf(output, "*f\n");
+        break;
+      case 9061:
+        fprintf(output, "/=f %i\n", mem[i++]);
+        break;
+      case 9072:
+        fprintf(output, "/=@f\n");
+        break;
+      case 9261:
+        fprintf(output, "/=fV %i\n", mem[i++]);
+        break;
+      case 9272:
+        fprintf(output, "/=@fV\n");
+        break;
+      case 9090:
+        fprintf(output, "/f\n");
+        break;
+      case 9300:
+      {
+        fprintf(output, "COPY00 %i ", mem[i++]);    // displleft
+
+        fprintf(output, "%i ", mem[i++]);       // displright
+
+        fprintf(output, "(%i)\n", mem[i++]);      // length
+
+      }
+        break;
+      case 9301:
+      {
+        fprintf(output, "COPY01 %i      ", mem[i++]); // displleft
+
+        fprintf(output, "(%i)\n", mem[i++]);      // length
+
+      }
+        break;
+      case 9302:
+      {
+        fprintf(output, "COPY10      %i ", mem[i++]); // displright
+
+        fprintf(output, "(%i)\n", mem[i++]);      // length
+
+      }
+        break;
+      case 9303:
+        fprintf(output, "COPY11 %i\n", mem[i++]);   // length
+
+        break;
+      case 9304:
+      {
+        fprintf(output, "COPY0ST %i ", mem[i++]);   // displright
+
+        fprintf(output, "(%i)\n", mem[i++]);      // length
+
+      }
+        break;
+      case 9305:
+        fprintf(output, "COPY1ST %i\n", mem[i++]);    // length
+
+        break;
+      case 9306 :
+      {
+        fprintf(output, "COPY0STASS %i ", mem[i++]);  // displleft
+
+        fprintf(output, "(%i)\n", mem[i++]);      // length
+
+      }
+        break;
+      case 9307 :
+        fprintf(output, "COPY1STASS %i\n", mem[i++]); // length
+
+        break;
+      case 9308:
+      {
+        fprintf(output, "COPYST %i ", mem[i++]);    // displ
+
+        fprintf(output, "(%i)", mem[i++]);        // length
+
+        fprintf(output, "(%i)\n", mem[i++]);      // length1
+
+      }
+        break;
+
+      case 9001:
+        fprintf(output, "%%= %i\n", mem[i++]);
+        break;
+      case 9012:
+        fprintf(output, "%%=@\n");
+        break;
+      case 9201:
+        fprintf(output, "%%=V %i\n", mem[i++]);
+        break;
+      case 9212:
+        fprintf(output, "%%=@V\n");
+        break;
+      case 9023:
+        fprintf(output, "%%\n");
+        break;
+
+      case 9465:
+        fprintf(output, "CALL1\n");
+        break;
+      case 9466:
+      {
+        fprintf(output, "CALL2 ");
+        fprintf(output, "%i\n", mem[i++]);
+      }
+        break;
+      case 9461:
+        fprintf(output, "STOP\n");
+        break;
+      case 9467:
+        fprintf(output, "RETURNVAL %i\n", mem[i++]);
+        break;
+      case 9468:
+        fprintf(output, "RETURNVOID\n");
+        break;
+      case 9469:
+        fprintf(output, "B %i\n", mem[i++]);
+        break;
+      case 9470:
+        fprintf(output, "BE0 %i\n", mem[i++]);
+        break;
+      case 9471:
+        fprintf(output, "BNE0 %i\n", mem[i++]);
+        break;
+      case 9472:
+        fprintf(output, "SLICE d= %i\n", mem[i++]);
+        break;
+      case 9462:
+        fprintf(output, "SELECT field_displ= %i\n", mem[i++]);
+        break;
+      case 9473:
+        fprintf(output, "WIDEN\n");
+        break;
+      case 9474:
+        fprintf(output, "WIDEN1\n");
+        break;
+      case 9475:
+        fprintf(output, "DOUBLE\n");
+        break;
+      case 9043:
+        fprintf(output, "INC %i\n", mem[i++]);
+        break;
+      case 9044:
+        fprintf(output, "DEC %i\n", mem[i++]);
+        break;
+      case 9041:
+        fprintf(output, "POSTINC %i\n", mem[i++]);
+        break;
+      case 9042:
+        fprintf(output, "POSTDEC %i\n", mem[i++]);
+        break;
+      case 9047:
+        fprintf(output, "INC@\n");
+        break;
+      case 9048:
+        fprintf(output, "DEC@\n");
+        break;
+      case 9045:
+        fprintf(output, "POSTINC@\n");
+        break;
+      case 9046:
+        fprintf(output, "POSTDEC@\n");
+        break;
+      case 9093:
+        fprintf(output, "INCf %i\n", mem[i++]);
+        break;
+      case 9094:
+        fprintf(output, "DECf %i\n", mem[i++]);
+        break;
+      case 9091:
+        fprintf(output, "POSTINCf %i\n", mem[i++]);
+        break;
+      case 9092:
+        fprintf(output, "POSTDECf %i\n", mem[i++]);
+        break;
+      case 9097:
+        fprintf(output, "INC@f\n");
+        break;
+      case 9098:
+        fprintf(output, "DEC@f\n");
+        break;
+      case 9095:
+        fprintf(output, "POSTINC@f\n");
+        break;
+      case 9096:
+        fprintf(output, "POSTDEC@f\n");
+        break;
+      case 9243:
+        fprintf(output, "INCV %i\n", mem[i++]);
+        break;
+      case 9244:
+        fprintf(output, "DECV %i\n", mem[i++]);
+        break;
+      case 9241:
+        fprintf(output, "POSTINCV %i\n", mem[i++]);
+        break;
+      case 9242:
+        fprintf(output, "POSTDECV %i\n", mem[i++]);
+        break;
+      case 9247:
+        fprintf(output, "INC@V\n");
+        break;
+      case 9248:
+        fprintf(output, "DEC@V\n");
+        break;
+      case 9245:
+        fprintf(output, "POSTINC@V\n");
+        break;
+      case 9246:
+        fprintf(output, "POSTDEC@V\n");
+        break;
+      case 9293:
+        fprintf(output, "INCfV %i\n", mem[i++]);
+        break;
+      case 9294:
+        fprintf(output, "DECfV %i\n", mem[i++]);
+        break;
+      case 9291:
+        fprintf(output, "POSTINCfV %i\n", mem[i++]);
+        break;
+      case 9292:
+        fprintf(output, "POSTDECfV %i\n", mem[i++]);
+        break;
+      case 9297:
+        fprintf(output, "INC@fV\n");
+        break;
+      case 9298:
+        fprintf(output, "DEC@fV\n");
+        break;
+      case 9295:
+        fprintf(output, "POSTINC@fV\n");
+        break;
+      case 9296:
+        fprintf(output, "POSTDEC@fV\n");
+        break;
+
+      case 9052:
+        fprintf(output, "BITNOT\n");
+        break;
+      case 9053:
+        fprintf(output, "NOT\n");
+        break;
+      case 9049:
+        fprintf(output, "UNMINUS\n");
+        break;
+      case 9099:
+        fprintf(output, "UNMINUSf\n");
+        break;
+
+      case 9463:
+      {
+        fprintf(output, "FUNCBEG maxdispl= %i ", mem[i++]);
+        fprintf(output, "pc= %i\n", mem[i++]);
+      }
+        break;
+
+      default:
+        fprintf(output, "%i\n", mem[i - 1]);
+    }
+  }
+}
+
+
+
+
+
+
+void preprocess_file();
+void show_macro();
+
+// #include <limits.h>
+
+// #include <math.h>
+
+
+
+// #include <string.h>
+
+
+
+
+
+int macrotext[3000000];
+int mstring[70];
+int macrofunction[3000000];
+int functionident[3000000];
+int fchange[70];
+int fip = 1;
+int mfp = 1;
+int mfirstrp = -1;        // начало и конец макрослов в reprtab
+
+int mlastrp = -1;
+int mp = 3;
+int msp = 0;
+int ifln = 0;
+int mcl;
+int checkif = 0;
+int flag_show_macro = 0;
+int arg = 0;
+
+int includeDepth = 0;
+int includedLines = 0;
+
+int mletter(int);
+int mdigit(int);
+int mequal(int[], int);
+
+void mend_line();
+void m_nextch(int);
+void monemore();
+void m_fprintf(int);
+
+void to_macrotext(int);
+void from_macrotext();      // 5
+
+int macro_keywords();     // 12
+
+void relis_define();      // 2
+
+
+void to_functionident();    // 4
+
+int scob(int);            // 6
+
+void from_functionident(int);
+void create_change(int);      // 11
+
+void r_macrofunction();     // 3
+
+
+int find_ident();
+
+int check_if(int);          // 10
+
+void end_line_space();      // 9
+
+void false_if();        // 8
+
+int m_false();          // 7
+
+void m_true(int);
+void m_if(int);
+
+void macroscan();       // 1, 17
+
+
+
+void show_macro()
+{
+  int i1 = lines[line];
+  int str1[70];
+  int j = 0;
+  int k;
+  int flag = 1;
+
+  arg = mlines[m_conect_lines[line]];
+
+  flag_show_macro = 1;
+  while (i1 < charnum)
+  {
+    // printf("\nbe[arg= %i] = %i, so[i1] = %i",arg, before_source[arg],source[i1] );
+
+
+    if (source[i1] == before_source[arg])
+    {
+      str1[j++] = before_source[arg];
+      i1++;
+      arg++;
+    }
+    else
+    {
+      flag = 0;
+      curchar = before_source[arg];
+      from_macrotext();
+
+      i1 += msp;
+    }
+  }
+
+  printf("\t %i) \t", m_conect_lines[line]);
+
+  for (k = 0; k < j; k++)
+  {
+    printf_char(str1[k]);
+  }
+
+  if (flag == 0)
+  {
+    printf("\n В строке есть макрозамена, строка после макрогенерации:\nline %i)", m_conect_lines[line]);
+
+    for (k = lines[line - 1]; k < charnum; k++)
+    {
+      printf_char(source[k]);
+    }
+  }
+}
+
+int mletter(int r)  // простые
+
+{
+  return (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') || r == '_' || (r >= 1040 && r <= 1103); // 1040 = 'А', 1103 = 'я'
+
+}
+
+int mdigit(int r)
+{
+  return r >= '0' && r <= '9';
+}
+
+int mequal(int str[], int j)
+{
+  int i = 0;
+
+  while (str[i++] == functionident[j++])
+  {
+    if (str[i] == 0 && functionident[j] == 0)
+    {
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+void mend_line()  // обработка символов
+
+{
+  int j;
+
+  if (includeDepth) {
+    includedLines++;
+  }
+
+  if (flag_show_macro == 0)
+  {
+    mlines[++mline] = m_charnum;
+    mlines[mline + 1] = m_charnum;
+
+    if (kw && includeDepth == 0)
+    {
+      printf("\t %i) \t", mline - 1 - includedLines);
+
+      for (j = mlines[mline - 1]; j < mlines[mline]; j++)
+      {
+        if (before_source[j] != -1)
+        {
+          printf_char(before_source[j]);
+        }
+      }
+    }
+  }
+
+  return;
+}
+
+void monemore()
+{
+  if (flag_show_macro == 0)
+  {
+    curchar = nextchar;
+    nextchar = getnext();
+    before_source[m_charnum++] = curchar;
+  }
+  else
+  {
+    curchar = before_source[arg++];
+  }
+
+  if (curchar == -1)
+  {
+    mend_line();
+    if (includeDepth == 0)
+    {
+      printf("\n");
+    }
+    return;
+  }
+}
+
+void m_nextch(int i)
+{
+  // printf(" i = %d curcar = %c curcar = %i\n", i, curchar, curchar);
+
+  monemore();
+
+  if (curchar == '/' && nextchar == '/')
+  {
+    if (i > 13)
+    {
+      m_fprintf(curchar);
+    }
+
+    do
+    {
+      monemore();
+      if (i > 13)
+      {
+        m_fprintf(curchar);
+      }
+    } while (curchar != '\n');
+
+    mend_line();
+    return;
+  }
+
+  if (curchar == '/' && nextchar == '*')
+  {
+    if (i > 13)
+    {
+      m_fprintf(curchar);
+    }
+
+    monemore();
+    if (i > 13)
+    {
+      m_fprintf(curchar);
+    }
+    do
+    {
+      monemore();
+      if (i > 13)
+      {
+        m_fprintf(curchar);
+      }
+
+      if (curchar == -1)
+      {
+        mend_line();
+        if (includeDepth == 0)
+        {
+          printf("\n");
+        }
+        m_error(297);
+      }
+
+      if (curchar == '\n')
+      {
+        mend_line();
+      }
+    } while (curchar != '*' || nextchar != '/');
+
+    monemore();
+    if (i > 13)
+    {
+      m_fprintf(curchar);
+    }
+    curchar = ' ';
+
+    return;
+  }
+
+  if (curchar == '\n')
+  {
+    mend_line();
+  }
+  return;
+}
+
+void m_fprintf(int a)
+{
+  if (a == '\n')
+  {
+    m_conect_lines[mcl++] = mline - 1;
+  }
+  fprintf_char(output, a);
+
+  return;
+}
+
+void end_line_space()
+{
+  while (curchar != '\n')
+  {
+    if (curchar == ' ' || curchar == '\t')
+    {
+      m_nextch(9);
+    }
+    else
+    {
+      m_error(381);
+    }
+  }
+
+  m_nextch(9);
+}
+
+int find_ident()
+{
+  int fpr = rp;
+  int i;
+  int r;
+
+  hash = 0;
+  fpr += 2;
+  for (i = 0; i < msp; i++)
+  {
+    hash += mstring[i];
+    reprtab[fpr++] = mstring[i];
+  }
+  reprtab[fpr++] = 0;
+  hash &= 255;
+  r = hashtab[hash];
+
+  while (r)
+  {
+    if (r >= mfirstrp && r <= mlastrp && equal(r, rp))
+    {
+      return r;
+    }
+    r = reprtab[r];
+  }
+
+  return 0;
+}
+
+int macro_keywords()  // define
+
+{
+  int oldrepr = rp;
+  int r = 0;
+
+  rp += 2;
+  hash = 0;
+
+  do
+  {
+    hash += curchar;
+    reprtab[rp++] = curchar;
+    m_nextch(12);
+  } while (letter() || digit());
+
+  if (curchar != ' ' && curchar != '\n' && curchar != '\t')
+  {
+    m_error(366);
+  }
+  else
+  {
+    m_nextch(12);
+  }
+
+  hash &= 255;
+  reprtab[rp++] = 0;
+  r = hashtab[hash];
+
+  if (r)
+  {
+    do
+    {
+      if (equal(r, oldrepr))
+      {
+        rp = oldrepr;
+        if(reprtab[r + 1] < 0)
+          return reprtab[r + 1];
+        else {
+          repr = r;
+          return 109;
+        }
+
+        //return (reprtab[r + 1] < 0) ? reprtab[r + 1] : (repr = r, IDENT);
+
+      }
+      else
+      {
+        r = reprtab[r];
+      }
+    } while (r);
+  }
+
+  return 0;
+}
+
+int to_reprtab()
+{
+  int i;
+  int r;
+  int oldrepr = rp;
+
+  mlastrp = oldrepr;
+  hash = 0;
+  rp += 2;
+
+  do
+  {
+    hash += curchar;
+    reprtab[rp++] = curchar;
+    m_nextch(2);
+  } while (letter() || digit());
+
+  hash &= 255;
+  reprtab[rp++] = 0;
+
+  r = hashtab[hash];
+  while (r)
+  {
+    if (equal(r, oldrepr))
+    {
+      m_error(377);
+    }
+
+    r = reprtab[r];
+  }
+
+  reprtab[oldrepr] = hashtab[hash];
+  hashtab[hash] = oldrepr;
+
+  return oldrepr;
+}
+
+void to_macrotext(int oldrepr)
+{
+  m_nextch(2);
+
+  macrotext[mp++] = oldrepr;
+
+  while (curchar != '\n')
+  {
+    macrotext[mp++] = curchar;
+    m_nextch(2);
+
+    if (curchar == -1)
+    {
+      m_error(379);
+    }
+
+    if (curchar == '\\')
+    {
+      m_nextch(2);
+      end_line_space();
+    }
+  }
+
+  macrotext[mp++] = 0;
+}
+
+void from_macrotext()
+{
+  int r;
+  msp = 0;
+
+  while (letter() || digit())
+  {
+    mstring[msp++] = curchar;
+    m_nextch(5);
+  }
+
+  r = find_ident();
+  // printf("r = %d\n", r);
+
+
+  if (r)
+  {
+    msp = 0;
+    if (reprtab[r + 1] == 2)
+    {
+      from_functionident(r);
+      return;
+    }
+
+    r = reprtab[r + 1] + 1;
+
+    for (; macrotext[r] != 0; r++)
+    {
+      mstring[msp++] = macrotext[r];
+    }
+  }
+
+  return;
+}
+
+void relis_define()
+{
+  if (letter())
+  {
+    int oldrepr = to_reprtab();
+
+    msp = 0;
+
+    if (curchar == '(')
+    {
+      reprtab[oldrepr + 1] = 2;
+      reprtab[rp++] = fip;
+      reprtab[rp++] = 0;
+
+      m_nextch(2);
+      r_macrofunction();
+
+      return;
+    }
+    else if (curchar != ' ')
+    {
+      m_error(366);
+    }
+    else
+    {
+      reprtab[oldrepr + 1] = mp;
+      to_macrotext(oldrepr);
+
+      return;
+    }
+  }
+  else
+  {
+    m_error(367);
+  }
+}
+
+void to_functionident() // define c параметрами
+
+{
+  while (curchar != ')')
+  {
+    //     reportab
+
+    //        \/
+
+    // funcid 5[] -> конец = 13
+
+    //        6[] -> macrofunc
+
+    //        7[] -> fcang
+
+    //        8[a]
+
+    //        9[0]
+
+    //       10[] -> fcang
+
+    //       11[b]
+
+    //       12[0]
+
+
+    msp = 0;
+    fip++;
+    if (letter())
+    {
+      while (letter() || digit())
+      {
+        functionident[fip++] = curchar;
+        mstring[msp++] = curchar;
+        m_nextch(4);
+      }
+
+      if (find_ident() != 0)
+      {
+        m_error(377);
+      }
+      functionident[fip++] = 0;
+    }
+    else
+    {
+      m_error(372);
+    }
+    msp = 0;
+
+    if (curchar == ',' && nextchar == ' ')
+    {
+      m_nextch(4);
+      m_nextch(4);
+    }
+    else if (curchar != ')')
+    {
+      m_error(373);
+    }
+  }
+
+  m_nextch(4);
+  return;
+}
+
+void from_functionident(int r)
+{
+  int i;
+  int kp;
+  int cp;
+  int r1 = r + 2;
+  int str[70];
+
+  int finish, newfi, flag;
+
+  for (; reprtab[r1] != 0; r1++);
+
+  r1++;
+  r1 = reprtab[r1];
+  create_change(r1);
+
+  finish = functionident[r1];
+  newfi = functionident[r1 + 1];
+  flag = 1;
+
+  msp = 0;
+  while (macrofunction[newfi] != '\n')
+  {
+    if (mletter(macrofunction[newfi]))
+    {
+      flag = 1;
+      for (i = 0; i < 70; i++)
+      {
+        str[i] = 0;
+      }
+
+      i = 0;
+      while (mletter(macrofunction[newfi]) || mdigit(macrofunction[newfi]))
+      {
+        str[i++] = macrofunction[newfi++];
+      }
+
+      for (kp = r1 + 2; kp < finish;)
+      {
+        if (mequal(str, kp + 1))
+        {
+          for (cp = functionident[kp]; fchange[cp] != '\n'; cp++)
+          {
+            mstring[msp++] = fchange[cp];
+          }
+
+          flag = 0;
+          break;
+        }
+
+        while (functionident[kp++] != 0);
+      }
+
+      if (flag == 1)
+      {
+        for (i = 0; str[i] != 0; i++)
+        {
+          mstring[msp++] = str[i];
+        }
+      }
+    }
+    else
+    {
+      mstring[msp++] = macrofunction[newfi];
+      newfi++;
+    }
+  }
+}
+
+int scob(int cp)
+{
+  int i;
+
+  fchange[cp++] = curchar;
+  m_nextch(6);
+
+  while (curchar != -1)
+  {
+    if (letter())
+    {
+      from_macrotext();
+      for (i = 0; i < msp; i++)
+      {
+        fchange[cp++] = mstring[i];
+      }
+    }
+    else if (curchar == '(')
+    {
+      cp = scob(cp);
+    }
+    else
+    {
+      fchange[cp++] = curchar;
+      m_nextch(6);
+
+      if (curchar != ')')
+      {
+        fchange[cp++] = curchar;
+        m_nextch(6);
+
+        return cp;
+      }
+    }
+  }
+
+  m_error(380);
+  return cp;
+}
+
+void create_change(int r1)
+{
+  int i;
+  int r = r1 + 2;
+  int cp = 1;
+
+  functionident[r] = cp;
+  if (curchar == '(')
+  {
+    m_nextch(11);
+    while (curchar != -1)
+    {
+      if (letter())
+      {
+        from_macrotext();
+        for (i = 0; i < msp; i++)
+        {
+          fchange[cp++] = mstring[i];
+        }
+      }
+      else if (curchar == '(')
+      {
+        cp = scob(cp);
+      }
+      else if (curchar != ')' && curchar != ',')
+      {
+        fchange[cp++] = curchar;
+        m_nextch(11);
+      }
+      else
+      {
+        m_error(371);
+      }
+
+      if (curchar == ',' || curchar == ')')
+      {
+        for (; functionident[r] != 0; r++);
+
+        if (r < functionident[r1])
+        {
+          fchange[cp++] = '\n';
+          r++;
+        }
+        else
+        {
+          m_error(371);
+        }
+
+        if (curchar == ',')
+        {
+          functionident[r] = cp;
+          m_nextch(11);
+        }
+        else
+        {
+          if (r != functionident[r1])
+          {
+            m_error(378);
+          }
+
+          m_nextch(11);
+          return;
+        }
+      }
+    }
+    m_error(380);
+  }
+  else
+  {
+    m_error(374);
+  }
+}
+
+void r_macrofunction()
+{
+  int j;
+  int olderfip = fip++;
+  functionident[fip++] = mfp;
+
+  to_functionident();
+  m_nextch(3);
+  functionident[olderfip] = fip;
+
+  while (curchar != '\n')
+  {
+    if (letter())
+    {
+      from_macrotext();
+      for (j = 0; j < msp; j++)
+      {
+        macrofunction[mfp++] = mstring[j];
+      }
+      msp = 0;
+    }
+    else
+    {
+      macrofunction[mfp++] = curchar;
+      m_nextch(3);
+    }
+
+    if (curchar == -1)
+    {
+      m_error(379);
+    }
+  }
+
+  macrofunction[mfp++] = '\n';
+  return;
+}
+
+int check_if(int type_if) // if
+
+{
+  int flag = 0;
+
+  if (type_if == -67)
+  {
+    m_error(375);
+  }
+  else if (type_if == -65 || type_if == -66)
+  {
+    msp = 0;
+    while (letter() || digit())
+    {
+      mstring[msp++] = curchar;
+      m_nextch(10);
+    }
+
+    if (find_ident())
+    {
+      flag = 1;
+    }
+
+    if (type_if == -65)
+    {
+      return flag;
+    }
+    else
+    {
+      return 1 - flag;
+    }
+  }
+
+  return 0;
+}
+
+void false_if()
+{
+  int fl_cur;
+
+  while (curchar != -1)
+  {
+    if (curchar == '#')
+    {
+      fl_cur = macro_keywords();
+      if (fl_cur == -69)
+      {
+        checkif--;
+        if (checkif == -1)
+        {
+          m_error(376);
+        }
+
+        return;
+      }
+
+      if (fl_cur == -67 || fl_cur == -65 || fl_cur == -66)
+      {
+        checkif++;
+        false_if();
+      }
+    }
+    else
+    {
+      m_nextch(8);
+    }
+  }
+
+  m_error(368);
+}
+
+int m_false()
+{
+  int fl_cur = cur;
+
+  while (curchar != -1)
+  {
+    if (curchar == '#')
+    {
+      fl_cur = macro_keywords();
+      if (fl_cur == -70 || fl_cur == -68 || fl_cur == -69)
+      {
+        return fl_cur;
+      }
+
+      if (fl_cur == -67 || fl_cur == -65 || fl_cur == -66)
+      {
+        false_if();
+      }
+    }
+    else
+    {
+      m_nextch(7);
+    }
+  }
+
+  m_error(368);
+  return 1;
+}
+
+void m_true(int type_if)
+{
+  while (curchar != -1)
+  {
+    macroscan();
+    if (cur == -70 || cur == -68)
+    {
+      break;
+    }
+
+    if (cur == -69)
+    {
+      checkif--;
+      if (checkif == -1)
+      {
+        m_error(376);
+      }
+
+      return;
+    }
+  }
+
+  if (type_if != -67 && cur == -68)
+  {
+    m_error(369);
+  }
+
+  false_if();
+  return;
+}
+
+void m_if(int type_if)
+{
+  int flag;
+  checkif++;
+  flag = check_if(type_if); // начало (if)
+
+  end_line_space();
+
+  if (flag)
+  {
+    m_true(type_if);
+    return;
+  }
+  else
+  {
+    cur = m_false();
+  }
+
+  /*
+    if (type_if == SH_IF)
+    {
+      while (cur == SH_ELIF)
+      {
+        flag = check_if(type_if);
+        end_line_space();
+
+        if(flag)
+        {
+          m_true(type_if);
+          return;
+        }
+        else
+        {
+          cur = m_folse();
+        }
+
+      }
+    }
+    else if (cur == SH_ELIF)
+    {
+      printf("Неправильное макрослово\n");
+      exit (10);
+    }
+  */ 
+
+  if (cur == -70)
+  {
+    cur = 0;
+    m_true(type_if);
+    return;
+  }
+
+  if (cur == -69)
+  {
+    checkif--;
+    if (checkif == -1)
+    {
+      m_error(376);
+    }
+  }
+}
+
+// TODO: Костыль для получения директории из пути файла.
+
+// НЕПЕРЕНОСИМЫЙ, ВНЕ СТИЛЯ КОДА, НО работает.
+
+void relis_include() 
+{
+  char filename[300000] = { '\0' };
+  int i = 0;
+  int old_input;
+  int j;
+  char realpath[300000] = { '\0' };
+  int k;
+
+  if (curchar != '\"')
+  {
+    m_error(386);
+    return;
+  }
+
+
+  do
+  {
+    m_nextch(1);
+    filename[i++] = curchar;
+  } while (curchar != '\"');
+
+  filename[i - 1] = 0;
+
+  old_input = input;
+
+  // path_get_dir
+
+
+  j = 300000 - 1;
+
+  while (j >= 0 && source_file_path[j] != '/')
+    j--;
+  while (j >= 0)
+  {
+    realpath[j] = source_file_path[j];
+    j--;
+  }
+
+  // end path_get_dir
+
+
+  j = 0;
+  while (realpath[j] != '\0') {
+    j++;
+  }
+  // strcat(&realpath, filename);
+
+  for (k = 0; k < i; k++) {
+    realpath[j+k] = filename[k];
+  }
+
+  input = fopen(realpath, "r");
+  if (input == 0)
+  {
+    printf(" файл %s не найден\n", realpath);
+
+    input = old_input;
+    return;
+  }
+
+  mend_line();
+  if (includeDepth == 0)
+  {
+    printf("\n");
+  }
+
+  includeDepth++;
+  preprocess_file();
+  includeDepth--;
+
+  input = old_input;
+}
+
+void macroscan()
+{
+  int j;
+
+  switch (curchar)
+  {
+    case -1:
+      return;
+
+    case '#':
+    {
+      cur = macro_keywords();
+      prep_flag = 1;
+
+      if (cur == -64)
+      {
+        relis_define();
+        m_nextch(1);
+        return;
+      }
+      else if (cur == -67 || cur == -65 || cur == -66)
+      {
+        m_if(cur);
+        return;
+      }
+      else if (cur == -70 || cur == -68 || cur == -69)
+      {
+        return;
+      }
+      else if (cur == -96 ) 
+      {
+        relis_include();
+        m_nextch(1);
+        m_nextch(1);
+        return;
+      }
+      else
+      {
+        m_fprintf(curchar);
+        m_nextch(17);
+        return;
+        m_error(370);
+      }
+    }
+
+    case '\'':
+    {
+      m_fprintf(curchar);
+      m_nextch(17);
+      if (curchar == '\\')
+      {
+        m_fprintf(curchar);
+        m_nextch(17);
+      }
+      m_fprintf(curchar);
+      m_nextch(17);
+
+      m_fprintf(curchar);
+      m_nextch(17);
+      return;
+    }
+
+    case '\"':
+    {
+      m_fprintf(curchar);
+      m_nextch(17);
+
+      while (curchar != '\"' && curchar != -1)
+      {
+        if (curchar == '\\')
+        {
+          m_fprintf(curchar);
+          m_nextch(17);
+        }
+        m_fprintf(curchar);
+        m_nextch(17);
+      }
+      m_fprintf(curchar);
+      m_nextch(17);
+      return;
+    }
+
+    default:
+    {
+      if (letter() && prep_flag == 1)
+      {
+        from_macrotext();
+        for (j = 0; j < msp; j++)
+        {
+          m_fprintf(mstring[j]);
+        }
+        return;
+      }
+      else
+      {
+        m_fprintf(curchar);
+        m_nextch(17);
+        return;
+      }
+    }
+  }
+}
+
+void preprocess_file()
+{
+  if (includeDepth == 0)
+  {
+    mfirstrp = rp;
+    mlines[mline = 1] = 1;
+    charnum = 1;
+    mcl = 1;
+  }
+
+  getnext();
+  m_nextch(18);
+  while (curchar != -1)
+  {
+    macroscan();
+  }
+  m_conect_lines[mcl++] = mline - 1;
+}
+
+
+int toreprtab(char str[])
+{
+  int i;
+  int oldrepr = rp;
+  hash = 0;
+  rp += 2;
+
+  for (i = 0; i < strlen(str); i++)
+  {
+    hash += str[i];
+    reprtab[rp++] = str[i];
+  }
+
+  hash &= 255;
+  reprtab[rp++] = 0;
+  reprtab[oldrepr] = hashtab[hash];
+  reprtab[oldrepr + 1] = 1;
+
+  return hashtab[hash] = oldrepr;
+}
+
+void main()
+{
+  int i;
+  
+  strcpy(&source_file_path, "main.ruc");
+
+  for (i = 0; i < 256; i++)
+  {
+    hashtab[i] = 0;
+  }
+
+  // занесение ключевых слов в reprtab
+
+  keywordsnum = 1;
+
+  input = fopen("keywords.txt", "r");
+  if (input == 0)
+  {
+    printf(" не найден файл %s\n", "keywords.txt");
+    t_exit();
+  }
+
+  getnext();
+  nextch();
+  while (scan() != 120)
+    ; // чтение ключевых слов
+
+  fclose(input);
+
+  input = fopen("main.ruc", "r"); // исходный текст
+
+  output = fopen("macro.txt", "wt");
+
+  if (input == 0)
+  {
+    printf(" не найден файл %s\n", "main.ruc");
+    t_exit();
+  }
+
+  modetab[1] = 0;
+  modetab[2] = 1002;
+  modetab[3] = 2;
+  modetab[4] = 4;
+  modetab[5] = modetab[7] = -1;
+  modetab[6] = toreprtab("numTh");
+  modetab[8] = toreprtab("data");
+  modetab[9] = 1; // занесение в modetab описателя struct{int numTh; int inf;}
+
+  modetab[10] = 1001;
+  modetab[11] = -6;
+  modetab[12] = 1;
+  modetab[13] = 2;
+  modetab[14] = 9; // занесение в modetab описателя функции void t_msg_send(struct msg_info m)
+
+  modetab[15] = 1001;
+  modetab[16] = -150;
+  modetab[17] = 1;
+  modetab[18] = -150;
+  modetab[19] = startmode = 14; // занесение в modetab описателя функции void* interpreter(void* n)
+
+  md = 19;
+  keywordsnum = 0;
+  lines[line = 1] = 1;
+  charnum = 1;
+  kw = 1;
+  tc = 0;
+  printf("RuC: Completed preparation.\n");
+
+  printf("\nИсходный текст:\n \n");
+  preprocess_file(); // макрогенерация
+
+  printf("RuC: Completed preprocessing.\n");
+
+  fclose(output);
+  fclose(input);
+
+  input = fopen("macro.txt", "r");
+
+  if (input == 0)
+  {
+    printf(" файл %s не найден\n", "macro.txt");
+  }
+  if (prep_flag == 1)
+  {
+    printf("\nТекст после препроцесора:\n \n");
+  }
+
+  output = fopen("tree.txt", "wt");
+
+  getnext();
+  nextch();
+  next = scan();
+  reset_row_col();
+
+  ext_decl(); // генерация дерева
+
+
+  lines[line + 1] = charnum;
+  tablesandtree();
+  fclose(output);
+  printf("RuC: written tree.\n");
+
+  output = fopen("codes.txt", "wt");
+
+  codegen(); // генерация кода
+
+  printf("RuC: finished codegen().\n");
+
+  tablesandcode();
+  printf("RuC: finished tablesandcode().\n");
+  printf("RuC: written codes.txt.\n");
+
+  fclose(input);
+  fclose(output);
+
+  output = fopen("export.txt", "wt");
+  fprintf(output, "%i %i %i %i %i %i %i\n", pc, funcnum, id, rp, md, maxdisplg, wasmain);
+
+  for (i = 0; i < pc; i++)
+  {
+    fprintf(output, "%i ", mem[i]);
+  }
+  fprintf(output, "\n");
+
+  for (i = 0; i < funcnum; i++)
+  {
+    fprintf(output, "%i ", functions[i]);
+  }
+  fprintf(output, "\n");
+
+  for (i = 0; i < id; i++)
+  {
+    fprintf(output, "%i ", identab[i]);
+  }
+  fprintf(output, "\n");
+
+  for (i = 0; i < rp; i++)
+  {
+    fprintf(output, "%i ", reprtab[i]);
+  }
+
+  for (i = 0; i < md; i++)
+  {
+    fprintf(output, "%i ", modetab[i]);
+  }
+  fprintf(output, "\n");
+
+  printf("RuC: written export.txt.\n");
+  fclose(output);
+}
