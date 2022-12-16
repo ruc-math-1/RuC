@@ -3684,7 +3684,7 @@ void ext_decl()
         if (firstdecl == LVOID)
           type = LVOIDASTER;
         else
-          newdecl(MPOINT, firstdecl);
+          type = newdecl(MPOINT, firstdecl);
         //type = firstdecl == LVOID ? LVOIDASTER : newdecl(MPOINT, firstdecl);
       }
       mustbe(IDENT, after_type_must_be_ident);
