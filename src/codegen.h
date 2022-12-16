@@ -203,11 +203,12 @@ int Expr_gen(int incond)
         break;
       case TSliceident:
       {
-        int sz = szof(eltype);
+        int sz;
         tocode(LOAD);		// параметры - смещение идента и тип элемента
         tocode(tree[tc++]);	// продолжение в след case
 
         eltype = tree[tc++];
+        sz = szof(eltype);
 
         Expr_gen(0);
 
@@ -223,8 +224,9 @@ int Expr_gen(int incond)
         break;
       case TSlice:			// параметр - тип элемента
       {
-        int sz = szof(eltype);
+        int sz;
         eltype = tree[tc++];
+        sz = szof(eltype);
         Expr_gen(0);
 
         tocode(SLICE);
@@ -787,6 +789,7 @@ void codegen()
 
       case TDeclid:
         Declid_gen();
+
         break;
 
       case NOP:

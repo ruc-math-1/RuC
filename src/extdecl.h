@@ -218,7 +218,7 @@ void mustbe(int what, int e)
 
 void totree(int opp)
 {
-  printf("RuC: Добавлено к дереву %i\n", opp);
+  //printf("RuC: Добавлено к дереву %i\n", opp);
   tree[tc++] = opp;
 }
 

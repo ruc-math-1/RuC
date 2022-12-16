@@ -837,7 +837,7 @@ int scaner()
 		}
 	*/
 
-  printf("RuC: Сканер обнаружил символ %i\n", cur);
+  //printf("RuC: Сканер обнаружил символ %i\n", cur);
 	return cur;
 }
 
