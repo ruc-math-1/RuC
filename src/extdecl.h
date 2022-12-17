@@ -2523,7 +2523,7 @@ void statement()
     {
       _id = toidentab(1, 0);
       totree(_id);
-      gotost[pgotost++] = id;     // это определение метки, если она встретилась до переходов на нее
+      gotost[pgotost++] = _id;     // это определение метки, если она встретилась до переходов на нее
       gotost[pgotost++] = -line;
     }
     else
@@ -2537,7 +2537,7 @@ void statement()
       }
       totree(_id);
     }
-    identab[id + 2] = 1;
+    identab[_id + 2] = 1;
 
     scaner();
     statement();
