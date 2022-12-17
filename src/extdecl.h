@@ -1271,7 +1271,14 @@ int find_field(int stype) // выдает смещение до найденно
 
     if (modetab[stype + 4 + i] == repr)
     {
-      stackoperands[sopnd] = ansttype = field_type;
+      ansttype = field_type;
+      if (sopnd >= 0) {
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        stack[100+sopnd] = ansttype;
+      }
+      //stackoperands[sopnd] = ansttype = field_type;
       flag = 0;
       break;
     }
@@ -1664,7 +1671,15 @@ void unarexpr()
           tree[tc - 2] = TIdenttoval;   // *p
         }
 
-        stackoperands[sopnd] = ansttype = modetab[ansttype + 1];
+        ansttype = modetab[ansttype + 1];
+        if (sopnd >= 0) {
+          stackoperands[sopnd] = ansttype;
+        }
+        else {
+          stack[100+sopnd] = ansttype;
+        }
+
+        //stackoperands[sopnd] = ansttype = modetab[ansttype + 1];
         anst = ADDR;
       }
       else
