@@ -3222,7 +3222,14 @@ int find_field(int stype) // выдает смещение до найденно
 
     if (modetab[stype + 4 + i] == repr)
     {
-      stackoperands[sopnd] = ansttype = field_type;
+      ansttype = field_type;
+      if (sopnd >= 0) {
+        stackoperands[sopnd] = ansttype;
+      }
+      else {
+        stack[100+sopnd] = ansttype;
+      }
+      // stackoperands[sopnd] = ansttype = field_type;
       flag = 0;
       break;
     }
@@ -3643,7 +3650,14 @@ void unarexpr()
 
         }
 
-        stackoperands[sopnd] = ansttype = modetab[ansttype + 1];
+        ansttype = modetab[ansttype + 1];
+        if (sopnd >= 0) {
+          stackoperands[sopnd] = ansttype;
+        }
+        else {
+          stack[100+sopnd] = ansttype;
+        }
+        //stackoperands[sopnd] = ansttype = modetab[ansttype + 1];
         anst = 111;
       }
       else
@@ -6550,7 +6564,7 @@ void Stmt_gen()
       break;
     case -344:
     {
-      tocode(-93);
+      tocode(9593);
       tocode(tree[tc++]); // общий размер того, что надо вывести
 
     }
