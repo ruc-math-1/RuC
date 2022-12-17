@@ -1765,6 +1765,7 @@ int scan()
         nextch();
         return 122;
       }
+      return scannumbr();
     case '0':
       return scannumbr();
     case '1':

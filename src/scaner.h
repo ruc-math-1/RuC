@@ -737,6 +737,7 @@ int scan()
 				nextch();
 				return DOT;
 			}
+      return scannumbr();
 		case '0':
       return scannumbr();
 		case '1':
