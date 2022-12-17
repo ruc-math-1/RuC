@@ -38,6 +38,9 @@ test()
 	cp ../src/keywords.txt keywords.txt
 	for code in ./*.c
 	do
+		if [[ $code == _* ]] ; then
+			continue
+		fi
 		cp $code main.ruc
 		out=`timeout $wait_for $ruc_vm ../src/export.txt >$code.out 2>$code.out`
 
