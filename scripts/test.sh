@@ -76,7 +76,7 @@ main()
 	build
 	test
 
-	if [[ fail != 0 || timeout != 0 ]] ; then
+	if [[ $fail != 0 || $timeout != 0 ]] ; then
 		exit 1
 	fi
 
