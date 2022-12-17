@@ -599,7 +599,7 @@ void Stmt_gen()
       break;
     case TFprintf:
     {
-      tocode(_FPRINTF);
+      tocode(FPRINTFC);
       tocode(tree[tc++]); // общий размер того, что надо вывести
     }
       break;
