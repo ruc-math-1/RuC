@@ -38,7 +38,7 @@ test()
 	cp ../src/keywords.txt keywords.txt
 	for code in ./*.c
 	do
-		if [[ $code == _* ]] ; then
+		if [[ $code == ./_* ]] ; then
 			continue
 		fi
 		cp $code main.ruc
