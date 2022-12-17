@@ -345,7 +345,7 @@ int toidentab(int f, int _type)
     }
     else
     {
-      identab[id + 3] = getstatic(type);
+      identab[id + 3] = getstatic(_type);
     }
   }
   id += 4;
