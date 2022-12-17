@@ -470,7 +470,7 @@ void Stmt_gen()
       int a;
       int _id;
 
-      if (_id > 0)
+      if (id1 > 0)
         _id = id1;
       else
         _id = -id1;
