@@ -5823,7 +5823,7 @@ void ext_decl()
         if (firstdecl == -6)
           type = -150;
         else
-          newdecl(1004, firstdecl);
+          type = newdecl(1004, firstdecl);
         //type = firstdecl == LVOID ? LVOIDASTER : newdecl(MPOINT, firstdecl);
 
       }
