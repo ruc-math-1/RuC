@@ -6,11 +6,13 @@ init()
 	ruc_vm=$2
 	test_dir=./tests 
 
-	wait_for=1
+	wait_for=10
 
 	pass=0
 	fail=0
 	timeout=0
+
+	equals=0
 
 	ulimit -s 81920
 }
@@ -36,17 +38,25 @@ test()
 {
 	cd $test_dir
 	cp ../src/keywords.txt keywords.txt
-	for code in ./*.c
+	for code in ./*.c ./*/*.c ./*/*/*.c
 	do
 		if [[ $code == ./_* ]] ; then
 			continue
 		fi
 		cp $code main.ruc
+
+		$legacy_compiler main.ruc >/dev/null 2>/dev/null
+		mv export.txt $code.export.legacy >/dev/null 2>/dev/null
+		if [[ $? != '0' ]]; then
+			continue
+		fi
+
 		out=`timeout $wait_for $ruc_vm ../src/export.txt >$code.out 2>$code.out`
 
 		case $? in
 			0)
 				echo -e "\x1B[1;32m build passing \x1B[1;39m: $code"
+				mv export.txt $code.export
 				let pass++
 				;;
 			124)
@@ -58,6 +68,14 @@ test()
 				let fail++
 				;;
 		esac
+
+		if cmp -s "$code.export.legacy" "$code.export"; then
+			echo -e "\x1B[1;32m export.txt same as from legacy compiler \x1B[1;39m: $code"
+			let equals++
+		else 
+			echo -e "\x1B[1;31m export.txt differ from legacy compiler \x1B[1;39m:  $code"
+		fi
+
 	done
 
 
@@ -65,7 +83,7 @@ test()
 		echo
 	fi
 
-	echo -e "\x1B[1;39m pass = $pass, fail = $fail, timeout = $timeout"
+	echo -e "\x1B[1;39m pass = $pass, fail = $fail, timeout = $timeout, equals = $equals"
 }
 
 main()
