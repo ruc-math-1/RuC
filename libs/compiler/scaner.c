@@ -736,7 +736,21 @@ int scan()
 						num *= 10;
 					}
 				}
-				numdouble *= pow(10.0, k * d);
+				// numdouble *= pow(10.0, k * d);
+				if (k > 0)
+				{
+				for (i = 1; i <= k * d; i++)
+				{
+					numdouble *= 10;
+				}
+				}
+				else
+				{
+				for (i = 1; i <= -k * d; i++)
+				{
+					numdouble *= 0.1;
+				}
+				}
 			}
 
 			if (flagint)
