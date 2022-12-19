@@ -6,7 +6,7 @@ char c;
 int push(char chto)
 {
 	if (++p>=size)
-		{print("Переполнен"); return(-1);}
+		{print(""); return(-1);}
 		stack[p]=chto;
 		return 0;
 }
@@ -14,7 +14,7 @@ int push(char chto)
 
 int pop()
 	{
-	if (p<0) {print("Больше нет");return(-4);}
+	if (p<0) {print("");return(-4);}
 	switch(stack[p])
 	{
 	case -2: print('-'); break;

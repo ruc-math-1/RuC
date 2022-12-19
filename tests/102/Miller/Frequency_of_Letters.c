@@ -7,7 +7,7 @@ for (i=0; i<5;i++)
  {
   c1[i]=0;
  }
-print("Введите строку");
+print("");
 for (i=0;i<10;i++)
  {
   getid(z);
@@ -23,7 +23,7 @@ for (i=0;i<10;i++)
     default: break;
    }
  }
-print("Частота a,b,c,d,e\n");
+print(" a,b,c,d,e\n");
 for (i=0; i<5;i++) 
  {          								 
  print(c1[i]);

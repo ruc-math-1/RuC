@@ -2,12 +2,12 @@ void main()
 {
  int i,k,t,u,n,z;
  float p,m;
- print("¬ведите число уравнений");
+ print("");
  getid(n);
   {
    float a[n][n+1];
    float b[n];
-   print("¬ведите матрицу");
+   print("");
    getid(a);
    for (z=0;z<n;z++)   
     {
@@ -37,7 +37,7 @@ void main()
    p=a[i][n];
    for (k=i+1;k<n;k++) p=p-a[i][k]*b[k];
    b[i]=p/a[i][i];		}				
-   print("–ешени€\n");
+   print("\n");
    print(b);
   }
 }
