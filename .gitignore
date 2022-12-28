@@ -105,7 +105,6 @@ desktop.ini
 !keywords.txt
 *.ruc
 *.ll
-*.s
 
 # Sublime workspace files
 *.sublime-workspace
