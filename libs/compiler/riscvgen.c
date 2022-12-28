@@ -207,3 +207,219 @@ typedef enum RISCV_INSTRUCTION
 	IC_REMUW
 
 } riscv_instruction_t;
+
+static void riscv_register_to_io(universal_io *const io, const mips_register_t reg)
+{
+	switch (reg)
+	{
+		case R_ZERO:
+			uni_printf(io, "zero");
+			break;
+
+		case R_RA:
+			uni_printf(io, "ra");
+			break;
+		case R_SP:
+			uni_printf(io, "sp");
+			break;
+		case R_GP:
+			uni_printf(io, "gp");
+			break;
+		case R_TP:
+			uni_printf(io, "tp");
+			break;
+
+		case R_T0:
+			uni_printf(io, "t0");
+			break;
+		case R_T1:
+			uni_printf(io, "t1");
+			break;
+		case R_T2:
+			uni_printf(io, "t2");
+			break;
+
+		case R_FP:
+			uni_printf(io, "fp");
+			break;
+		case R_S0:
+			uni_printf(io, "s0");
+			break;
+		case R_S1:
+			uni_printf(io, "s1");
+			break;
+
+		case R_A0:
+			uni_printf(io, "a0");
+			break;
+		case R_A1:
+			uni_printf(io, "a1");
+			break;
+		case R_A2:
+			uni_printf(io, "a2");
+			break;
+		case R_A3:
+			uni_printf(io, "a3");
+			break;
+		case R_A4:
+			uni_printf(io, "a4");
+			break;
+		case R_A5:
+			uni_printf(io, "a5");
+			break;
+		case R_A6:
+			uni_printf(io, "a6");
+			break;
+		case R_A7:
+			uni_printf(io, "a7");
+			break;
+
+		case R_S2:
+			uni_printf(io, "s2");
+			break;
+		case R_S3:
+			uni_printf(io, "s3");
+			break;
+		case R_S4:
+			uni_printf(io, "s4");
+			break;
+		case R_S5:
+			uni_printf(io, "s5");
+			break;
+		case R_S6:
+			uni_printf(io, "s6");
+			break;
+		case R_S7:
+			uni_printf(io, "s7");
+			break;
+		case R_S8:
+			uni_printf(io, "s8");
+			break;
+		case R_S9:
+			uni_printf(io, "s9");
+			break;
+		case R_S10:
+			uni_printf(io, "s10");
+			break;
+		case R_S11:
+			uni_printf(io, "s11");
+			break;
+
+		case R_T3:
+			uni_printf(io, "t3");
+			break;
+		case R_T4:
+			uni_printf(io, "t4");
+			break;
+		case R_T5:
+			uni_printf(io, "t5");
+			break;
+		case R_T6:
+			uni_printf(io, "t6");
+			break;
+
+		case R_FT0:
+			uni_printf(io, "ft0");
+			break;
+		case R_FT1:
+			uni_printf(io, "ft1");
+			break;
+		case R_FT2:
+			uni_printf(io, "ft2");
+			break;
+		case R_FT3:
+			uni_printf(io, "ft3");
+			break;
+		case R_FT4:
+			uni_printf(io, "ft4");
+			break;
+		case R_FT5:
+			uni_printf(io, "ft5");
+			break;
+		case R_FT6:
+			uni_printf(io, "ft6");
+			break;
+		case R_FT7:
+			uni_printf(io, "ft7");
+			break;
+
+		case R_FS0:
+			uni_printf(io, "fs0");
+			break;
+		case R_FS1:
+			uni_printf(io, "fs1");
+			break;
+
+		case R_FA0:
+			uni_printf(io, "fa0");
+			break;
+		case R_FA1:
+			uni_printf(io, "fa1");
+			break;
+		case R_FA2:
+			uni_printf(io, "fa2");
+			break;
+		case R_FA3:
+			uni_printf(io, "fa3");
+			break;
+		case R_FA4:
+			uni_printf(io, "fa4");
+			break;
+		case R_FA5:
+			uni_printf(io, "fa5");
+			break;
+		case R_FA6:
+			uni_printf(io, "fa6");
+			break;
+		case R_FA7:
+			uni_printf(io, "fa7");
+			break;
+
+		case R_FS2:
+			uni_printf(io, "fs2");
+			break;
+		case R_FS3:
+			uni_printf(io, "fs3");
+			break;
+		case R_FS4:
+			uni_printf(io, "fs4");
+			break;
+		case R_FS5:
+			uni_printf(io, "fs5");
+			break;
+		case R_FS6:
+			uni_printf(io, "fs6");
+			break;
+		case R_FS7:
+			uni_printf(io, "fs7");
+			break;
+		case R_FS8:
+			uni_printf(io, "fs8");
+			break;
+		case R_FS9:
+			uni_printf(io, "fs9");
+			break;
+		case R_FS10:
+			uni_printf(io, "fs10");
+			break;
+		case R_FS11:
+			uni_printf(io, "fs11");
+			break;
+		case R_FS2:
+			uni_printf(io, "fs0");
+			break;
+
+		case R_FT8:
+			uni_printf(io, "ft8");
+			break;
+		case R_FT9:
+			uni_printf(io, "ft9");
+			break;
+		case R_FT10:
+			uni_printf(io, "ft10");
+			break;
+		case R_FT11:
+			uni_printf(io, "ft11");
+			break;
+	}
+}
