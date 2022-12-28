@@ -5,31 +5,32 @@
 # a0 - возвращаемое значение, размер
 __szof:
 	addi    a0, zero, 2
-	addi    0, $0, -2             # CHAR
-	beq     a0, $t0, szofEND
+	addi    t0, zero, -2          # CHAR
+	beq     a1, t0, __szof_end
 
-	addi    v0, $0, 4
-	addi    t0, $0, -1            # INT
-	beq     a0, $t0, szofEND
+	addi    a0, zero, 4
+	addi    t0, zero, -1          # INT
+	beq     a1, t0, __szof_end
 
-	addi    t0, $0, -3            # FLOAT
-	beq     a0, $t0, szofEND
+	addi    t0, zero, -3          # FLOAT
+	beq     a1, t0, __szof_end
 
-	lui     t0, %hi(modetab)
-	addiu   t0, $t0, %lo(modetab) # t0 modetab
-	sll     t1, $a0, 2            # t1 type*4
-	add     t2, $t1, $t0          # t2 address of modetab[t]
-	lw      t0, 0($t2)            # t0 ARRAY or STRUCT or POINTER
+	# TODO: Implement szof(ARRAY | POINTER | STRUCT).
+	# lui     t0, %hi(modetab)
+	# addiu   t0, $t0, %lo(modetab) # t0 modetab
+	# sll     t1, $a0, 2            # t1 type*4
+	# add     t2, $t1, $t0          # t2 address of modetab[t]
+	# lw      t0, 0($t2)            # t0 ARRAY or STRUCT or POINTER
 
-	addi    t1, $0, 1003          # ARRAY
-	beq     t0, $t1, szofEND
+	# addi    t1, zero, 1003        # ARRAY
+	# beq     t0, $t1, __szof_end
 
-	addi    t1, $0, 1004          # POINTER
-	beq     t0, $t1, szofEND
+	# addi    t1, zero, 1004        # POINTER
+	# beq     t0, t1, __szof_end
 
-	lw      v0, 4($t2)            # STRUCT
+	# lw      a0, 4($t2)            # STRUCT
 __szof_end:
-	jr      ra
+	jalr    zero, 0(ra)
 
 
 szofstr:
