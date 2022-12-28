@@ -187,6 +187,18 @@ typedef enum RISCV_INSTRUCTION
 	IC_SUBW,
 	IC_SLLW,
 	IC_SRLW,
-	IC_SRAW
+	IC_SRAW,
+
+	IC_M32_INSTRUCTIONS,
+	IC_MUL = 48,
+	IC_MULH,
+	IC_MULHSU, 
+	IC_MULHU,
+	IC_DIV,
+	IC_DIVU,
+	IC_REM,
+	IC_REMU,
+
+	
 
 } riscv_instruction_t;
