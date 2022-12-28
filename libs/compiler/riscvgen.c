@@ -208,7 +208,7 @@ typedef enum RISCV_INSTRUCTION
 
 } riscv_instruction_t;
 
-static void riscv_register_to_io(universal_io *const io, const mips_register_t reg)
+static void riscv_register_to_io(universal_io *const io, const riscv_register_t reg)
 {
 	switch (reg)
 	{
@@ -421,5 +421,202 @@ static void riscv_register_to_io(universal_io *const io, const mips_register_t r
 		case R_FT11:
 			uni_printf(io, "ft11");
 			break;
+	}
+}
+
+static void instruction_to_io(universal_io *const io, const riscv_instruction_t instruction)
+{
+	switch (instruction)
+	{
+		case IC_LUI:
+			uni_printf(io, "lui");
+			break;
+		case IC_AUIPC:
+			uni_printf(io, "auipc");
+			break;
+		case IC_JAL:
+			uni_printf(io, "jal");
+			break;
+		case IC_JALR:
+			uni_printf(io, "jalr");
+			break;
+		case IC_BEQ:
+			uni_printf(io, "beq");
+			break;
+		case IC_BNE:
+			uni_printf(io, "bne");
+			break;
+		case IC_BLT:
+			uni_printf(io, "blt");
+			break;
+		case IC_BGE:
+			uni_printf(io, "bge");
+			break;
+		case IC_BLTU:
+			uni_printf(io, "bltu");
+			break;
+		case IC_BGEU:
+			uni_printf(io, "bgeu");
+			break;
+		case IC_LB:
+			uni_printf(io, "lb");
+			break;
+		case IC_LH:
+			uni_printf(io, "lh");
+			break;
+		case IC_LW:
+			uni_printf(io, "lw");
+			break;
+		case IC_LBU:
+			uni_printf(io, "lbu");
+			break;
+		case IC_LHU:
+			uni_printf(io, "lhu");
+			break;
+		case IC_SB:
+			uni_printf(io, "sb");
+			break;
+		case IC_SH:
+			uni_printf(io, "sh");
+			break;
+		case IC_SW:
+			uni_printf(io, "sw");
+			break;
+		case IC_ADDI:
+			uni_printf(io, "addi");
+			break;
+		case IC_SLTI:
+			uni_printf(io, "slti");
+			break;
+		case IC_SLTIU:
+			uni_printf(io, "sltiu");
+			break;
+		case IC_XORI:
+			uni_printf(io, "xori");
+			break;
+		case IC_ORI:
+			uni_printf(io, "ori");
+			break;
+		case IC_ANDI:
+			uni_printf(io, "andi");
+			break;
+		case IC_SLLI:
+			uni_printf(io, "slli");
+			break;
+		case IC_SRLI:
+			uni_printf(io, "srli");
+			break;
+		case IC_SRAI:
+			uni_printf(io, "srai");
+			break;
+		case IC_ADD:
+			uni_printf(io, "add");
+			break;
+		case IC_SUB:
+			uni_printf(io, "sub");
+			break;
+		case IC_SLL:
+			uni_printf(io, "sll");
+			break;
+		case IC_SLT:
+			uni_printf(io, "slt");
+			break;
+		case IC_SLTU:
+			uni_printf(io, "sltu");
+			break;
+		case IC_XOR:
+			uni_printf(io, "xor");
+			break;
+		case IC_SRL:
+			uni_printf(io, "srl");
+			break;
+		case IC_SRA:
+			uni_printf(io, "sra");
+			break;
+		case IC_OR:
+			uni_printf(io, "or");
+			break;
+		case IC_AND:
+			uni_printf(io, "and");
+			break;
+		case IC_FENCE:
+			uni_printf(io, "fence");
+			break;
+		case IC_FENCEI:
+			uni_printf(io, "fencei");
+			break;
+
+		case IC_LWU:
+			uni_printf(io, "lwu");
+			break;
+		case IC_ADDIW:
+			uni_printf(io, "addiw");
+			break;
+		case IC_SLLIW:
+			uni_printf(io, "slliw");
+			break;
+		case IC_SRLIW:
+			uni_printf(io, "srliw");
+			break;
+		case IC_SRAIW:
+			uni_printf(io, "sraiw");
+			break;
+		case IC_ADDW:
+			uni_printf(io, "addw");
+			break;
+		case IC_SUBW:
+			uni_printf(io, "subw");
+			break;
+		case IC_SLLW:
+			uni_printf(io, "sllw");
+			break;
+		case IC_SRLW:
+			uni_printf(io, "srlw");
+			break;
+		case IC_SRAW:
+			uni_printf(io, "sraw");
+			break;
+
+		case IC_MUL:
+			uni_printf(io, "mul");
+			break;
+		case IC_MULH:
+			uni_printf(io, "mulh");
+			break;
+		case IC_MULHSU:
+			uni_printf(io, "mulhsu");
+			break;
+		case IC_MULHU:
+			uni_printf(io, "mulhu");
+			break;
+		case IC_DIV:
+			uni_printf(io, "div");
+			break;
+		case IC_DIVU:
+			uni_printf(io, "divu");
+			break;
+		case IC_REM:
+			uni_printf(io, "rem");
+			break;
+		case IC_REMU:
+			uni_printf(io, "remu");
+			break;
+
+		case IC_MULW:
+			uni_printf(io, "mulw");
+			break;
+		case IC_DIVW:
+			uni_printf(io, "divw");
+			break;
+		case IC_DIVUW:
+			uni_printf(io, "divuw");
+			break;
+		case IC_REMW:
+			uni_printf(io, "remw");
+			break;
+		case IC_REMUW:
+			uni_printf(io, "remuw");
+			break;
+
 	}
 }
