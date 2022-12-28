@@ -80,6 +80,15 @@ EXPORTED status_t compile_to_llvm(workspace *const ws);
  */
 EXPORTED int compile_to_mips(workspace *const ws);
 
+/**
+ *  Compile RISCV code from workspace
+ *
+ *  @param  ws    Compiler workspace
+ *
+ *  @return Status code
+ */
+EXPORTED int compile_to_riscv(workspace *const ws);
+
 
 /**
  *	Compile code from terminal arguments

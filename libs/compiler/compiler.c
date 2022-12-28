@@ -25,6 +25,7 @@
 #include "preprocessor.h"
 #include "syntax.h"
 #include "uniio.h"
+#include "riscvgen.h"
 
 #ifndef _WIN32
 	#include <sys/stat.h>
@@ -173,6 +174,10 @@ status_t compile(workspace *const ws)
 		{
 			return compile_to_mips(ws);
 		}
+		else if (strcmp(flag, "-RISCV") == 0)
+		{
+			return compile_to_riscv(ws);
+		}
 	}
 }
 
@@ -211,6 +216,16 @@ int compile_to_mips(workspace *const ws)
 	}
 
 	return compile_from_ws(ws, &encode_to_mips);
+}
+
+int compile_to_riscv(workspace *const ws)
+{
+	if (ws_get_output(ws) == NULL)
+	{
+		ws_set_output(ws, DEFAULT_RISCV);
+	}
+
+	return compile_from_ws(ws, &encode_to_riscv);
 }
 
 
