@@ -21,7 +21,7 @@
 #include "defs.h"
 
 
-struct
+extern struct _Numr
 {
 	int first;
 	int second;

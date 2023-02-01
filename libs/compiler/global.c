@@ -24,6 +24,8 @@
 FILE *input, *output;
 char* source_file_path;
 
+struct _Numr numr;
+
 double numdouble;
 int line = 0, mline = 0, charnum = 1, m_charnum = 1, cur, next, next1, num, hash, repr, keywordsnum, wasstructdef = 0;
 
